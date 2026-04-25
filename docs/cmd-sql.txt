@@ -1,0 +1,142 @@
+-- DROP SCHEMA dbo;
+
+CREATE SCHEMA dbo;
+-- HospitalTTG.dbo.Bookings definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Bookings;
+
+CREATE TABLE HospitalTTG.dbo.Bookings ( Id uniqueidentifier DEFAULT newid() NOT NULL, FullName nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, PhoneNumber nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, DateOfBirth datetime2 NOT NULL, AppointmentDate datetime2 NOT NULL, Symptoms nvarchar(2000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Status int NOT NULL, CreatedAt datetime2 NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_Bookings PRIMARY KEY (Id));
+
+
+-- HospitalTTG.dbo.Categories definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Categories;
+
+CREATE TABLE HospitalTTG.dbo.Categories ( Id uniqueidentifier DEFAULT newid() NOT NULL, ParentId uniqueidentifier NULL, Name nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Slug nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, [Type] nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Lang nvarchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT N'vi' NOT NULL, SortOrder int DEFAULT 0 NOT NULL, IsActive bit DEFAULT 1 NOT NULL, CreatedAt datetime2 DEFAULT getutcdate() NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_Categories PRIMARY KEY (Id));
+ CREATE NONCLUSTERED INDEX IX_Categories_ParentId ON HospitalTTG.dbo.Categories (  ParentId ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE NONCLUSTERED INDEX IX_Categories_Type_IsActive ON HospitalTTG.dbo.Categories (  Type ASC  , IsActive ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE UNIQUE NONCLUSTERED INDEX UQ_Categories_Slug_Lang ON HospitalTTG.dbo.Categories (  Slug ASC  , Lang ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.Contacts definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Contacts;
+
+CREATE TABLE HospitalTTG.dbo.Contacts ( Id uniqueidentifier DEFAULT newid() NOT NULL, FullName nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Email nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Subject nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Content nvarchar(2000) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Status int NOT NULL, CreatedAt datetime2 NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_Contacts PRIMARY KEY (Id));
+
+
+-- HospitalTTG.dbo.ContentMedias definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.ContentMedias;
+
+CREATE TABLE HospitalTTG.dbo.ContentMedias ( Id uniqueidentifier DEFAULT newid() NOT NULL, ContentId uniqueidentifier NOT NULL, MediaType nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Url nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Caption nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, IsThumbnail bit DEFAULT 0 NOT NULL, SortOrder int DEFAULT 0 NOT NULL, CreatedAt datetime2 DEFAULT getutcdate() NOT NULL, UpdatedAt datetime2 NULL, CONSTRAINT PK_ContentMedias PRIMARY KEY (Id));
+ CREATE NONCLUSTERED INDEX IX_ContentMedias_ContentId_SortOrder ON HospitalTTG.dbo.ContentMedias (  ContentId ASC  , SortOrder ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.Contents definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Contents;
+
+CREATE TABLE HospitalTTG.dbo.Contents ( Id uniqueidentifier DEFAULT newid() NOT NULL, CategoryId uniqueidentifier NOT NULL, ContentType nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Title nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Slug nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Intro nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Body nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Thumbnail nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, FileAttach nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Tags nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Status tinyint DEFAULT 1 NOT NULL, IsHot bit DEFAULT 0 NOT NULL, ViewCount int DEFAULT 0 NOT NULL, PublishedAt datetime2 NULL, CreatedAt datetime2 DEFAULT getutcdate() NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_Contents PRIMARY KEY (Id));
+ CREATE NONCLUSTERED INDEX IX_Contents_CategoryId_Status ON HospitalTTG.dbo.Contents (  CategoryId ASC  , Status ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE NONCLUSTERED INDEX IX_Contents_ContentType_Status ON HospitalTTG.dbo.Contents (  ContentType ASC  , Status ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE NONCLUSTERED INDEX IX_Contents_IsHot_Status ON HospitalTTG.dbo.Contents (  IsHot ASC  , Status ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE NONCLUSTERED INDEX IX_Contents_PublishedAt ON HospitalTTG.dbo.Contents (  PublishedAt ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE UNIQUE NONCLUSTERED INDEX UQ_Contents_Slug ON HospitalTTG.dbo.Contents (  Slug ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.Menus definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Menus;
+
+CREATE TABLE HospitalTTG.dbo.Menus ( Id uniqueidentifier DEFAULT newid() NOT NULL, ParentId uniqueidentifier NULL, Title nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Url nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Icon nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, SortOrder int NOT NULL, IsActive bit DEFAULT 1 NOT NULL, CreatedBy nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CreatedDate datetime2 NOT NULL, UpdatedBy nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedDate datetime2 NULL, CONSTRAINT PK_Menus PRIMARY KEY (Id));
+ CREATE NONCLUSTERED INDEX IX_Menus_ParentId ON HospitalTTG.dbo.Menus (  ParentId ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE NONCLUSTERED INDEX IX_Menus_SortOrder ON HospitalTTG.dbo.Menus (  SortOrder ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.RoleMenus definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.RoleMenus;
+
+CREATE TABLE HospitalTTG.dbo.RoleMenus ( Id uniqueidentifier DEFAULT newid() NOT NULL, RoleId nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, MenuId uniqueidentifier NOT NULL, CanView bit DEFAULT 1 NOT NULL, CreatedBy nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CreatedDate datetime2 NOT NULL, CONSTRAINT PK_RoleMenus PRIMARY KEY (Id));
+ CREATE UNIQUE NONCLUSTERED INDEX IX_RoleMenus_RoleId_MenuId ON HospitalTTG.dbo.RoleMenus (  RoleId ASC  , MenuId ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.StoredFiles definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.StoredFiles;
+
+CREATE TABLE HospitalTTG.dbo.StoredFiles ( Id uniqueidentifier DEFAULT newid() NOT NULL, StoredFileName nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, OriginalFileName nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, ContentType nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, FileSize bigint NOT NULL, PhysicalPath nvarchar(1000) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, CreatedAt datetime2 DEFAULT getutcdate() NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(450) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(450) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_StoredFiles PRIMARY KEY (Id), CONSTRAINT UQ_StoredFiles_StoredFileName UNIQUE (StoredFileName));
+
+
+-- HospitalTTG.dbo.SysCategories definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.SysCategories;
+
+CREATE TABLE HospitalTTG.dbo.SysCategories ( Id uniqueidentifier DEFAULT newid() NOT NULL, Code nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Name nvarchar(500) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, [Type] int NOT NULL, Description nvarchar(1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Active bit NULL, Deleted bit NULL, CreateBy int NULL, CreateDTG datetime2 NULL, UpdateBy int NULL, UpdateDTG datetime2 NULL, ParentId uniqueidentifier NULL, Ext1s nvarchar(1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, Ext1d decimal(18,4) NULL, CONSTRAINT PK_SysCategories PRIMARY KEY (Id));
+
+
+-- HospitalTTG.dbo.Users definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.Users;
+
+CREATE TABLE HospitalTTG.dbo.Users ( Id uniqueidentifier DEFAULT newid() NOT NULL, Username nvarchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, PasswordHash nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, Email nvarchar(256) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, FullName nvarchar(200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, [Role] nvarchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT 'User' NOT NULL, RefreshToken nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, RefreshTokenExpiryTime datetime2 NULL, IsActive bit DEFAULT 1 NOT NULL, CreatedAt datetime2 NOT NULL, UpdatedAt datetime2 NULL, CreatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, UpdatedBy nvarchar(MAX) COLLATE SQL_Latin1_General_CP1_CI_AS NULL, CONSTRAINT PK_Users PRIMARY KEY (Id));
+ CREATE UNIQUE NONCLUSTERED INDEX IX_Users_Email ON HospitalTTG.dbo.Users (  Email ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+ CREATE UNIQUE NONCLUSTERED INDEX IX_Users_Username ON HospitalTTG.dbo.Users (  Username ASC  )  
+	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
+	 ON [PRIMARY ] ;
+
+
+-- HospitalTTG.dbo.[__EFMigrationsHistory] definition
+
+-- Drop table
+
+-- DROP TABLE HospitalTTG.dbo.[__EFMigrationsHistory];
+
+CREATE TABLE HospitalTTG.dbo.[__EFMigrationsHistory] ( MigrationId nvarchar(150) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, ProductVersion nvarchar(32) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL, CONSTRAINT PK___EFMigrationsHistory PRIMARY KEY (MigrationId));
