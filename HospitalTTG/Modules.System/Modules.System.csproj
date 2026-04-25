@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts.System\Contracts.System.csproj" />
+    <ProjectReference Include="..\Shared.Abstractions\Shared.Abstractions.csproj" />
+    <ProjectReference Include="..\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/Contracts/">
+    <Project Path="Contracts.Article/Contracts.Article.csproj" />
+    <Project Path="Contracts.Auth/Contracts.Auth.csproj" />
+    <Project Path="Contracts.Storage/Contracts.Storage.csproj" />
+    <Project Path="Contracts.System/Contracts.System.csproj" />
+    <Project Path="Contracts.Contact/Contracts.Contact.csproj" />
+    <Project Path="Contracts.Booking/Contracts.Booking.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="WebAPI/WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/Modules/">
+    <Project Path="Modules.Article/Modules.Article.csproj" />
+    <Project Path="Modules.Auth/Modules.Auth.csproj" />
+    <Project Path="Modules.Storage/Modules.Storage.csproj" />
+    <Project Path="Modules.System/Modules.System.csproj" />
+    <Project Path="Modules.Contact/Modules.Contact.csproj" />
+    <Project Path="Modules.Booking/Modules.Booking.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared.Abstractions/Shared.Abstractions.csproj" />
+    <Project Path="Shared.Infrastructure/Shared.Infrastructure.csproj" />
+  </Folder>
+</Solution>

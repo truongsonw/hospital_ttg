@@ -1,0 +1,35 @@
+# .gitignore for HospitalTTG (Backend)
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bwin/
+[Log]s/
+[Tt]est[Rr]esult*/
+[Bb]uildLog.*
+
+# Generated files
+
+# Uploads folder
+[Ww]ebAPI/uploads/
