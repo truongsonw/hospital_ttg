@@ -13,6 +13,9 @@ export default [
     route("contact", "routes/_main/contact.tsx"), // Route: /contact
     route("tin-tuc", "routes/_main/tin-tuc.tsx"), // Route: /tin-tuc
     route("tin-tuc/:slug", "routes/_main/tin-tuc.$slug.tsx"), // Route: /tin-tuc/:slug
+    route("doi-ngu-chuyen-gia", "routes/_main/doi-ngu-chuyen-gia.tsx"), // Route: /doi-ngu-chuyen-gia
+    route("doi-ngu-chuyen-gia/:id", "routes/_main/doi-ngu-chuyen-gia.$id.tsx"), // Route: /doi-ngu-chuyen-gia/:id
+    route("ban-lanh-dao", "routes/_main/ban-lanh-dao.tsx"), // Route: /ban-lanh-dao
   ]),
 
   // 3. Nhóm Dashboard (Dành cho Quản lý / Bác sĩ)
@@ -29,6 +32,12 @@ export default [
         route("contents", "routes/_dashboard/article.contents.tsx"),              // Route: /dashboard/article/contents
         route("contents/create", "routes/_dashboard/article.contents.create.tsx"), // Route: /dashboard/article/contents/create
         route("contents/:id/edit", "routes/_dashboard/article.contents.$id.edit.tsx"), // Route: /dashboard/article/contents/:id/edit
+      ]),
+      route("bookings", "routes/_dashboard/bookings.tsx"),  // Route: /dashboard/bookings
+      route("contacts", "routes/_dashboard/contacts.tsx"),  // Route: /dashboard/contacts
+      ...prefix("doctors", [
+        index("routes/_dashboard/doctors.tsx"),                          // Route: /dashboard/doctors
+        route("departments", "routes/_dashboard/doctors.departments.tsx"), // Route: /dashboard/doctors/departments
       ]),
     ]),
   ]),

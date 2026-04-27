@@ -22,6 +22,10 @@ import {
   IconCategory,
   IconCategory2,
   IconNews,
+  IconCalendar,
+  IconMail,
+  IconStethoscope,
+  IconBuildingHospital,
 } from "@tabler/icons-react"
 import { Link } from "react-router"
 
@@ -82,6 +86,30 @@ const data = {
       title: "Quản lý nội dung",
       url: "/dashboard/article/contents",
       icon: IconNews,
+    },
+  ],
+  navReception: [
+    {
+      title: "Đặt lịch khám",
+      url: "/dashboard/bookings",
+      icon: IconCalendar,
+    },
+    {
+      title: "Liên hệ",
+      url: "/dashboard/contacts",
+      icon: IconMail,
+    },
+  ],
+  navDoctors: [
+    {
+      title: "Quản lý bác sĩ",
+      url: "/dashboard/doctors",
+      icon: IconStethoscope,
+    },
+    {
+      title: "Quản lý khoa",
+      url: "/dashboard/doctors/departments",
+      icon: IconBuildingHospital,
     },
   ],
   navSecondary: [
@@ -149,6 +177,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navArticle.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Reception module */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Tiếp nhận</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {data.navReception.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Doctors module */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Bác sĩ</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {data.navDoctors.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
                     <item.icon />

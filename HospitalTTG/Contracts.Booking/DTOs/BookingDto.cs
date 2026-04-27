@@ -11,5 +11,6 @@ public class BookingDto
     public DateTime AppointmentDate { get; set; }
     public string? Symptoms { get; set; }
     public BookingStatus Status { get; set; }
+    public string? Note { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -23,6 +23,10 @@ public static class Extensions
         services.AddScoped<ISysCategoryRepository, SysCategoryRepository>();
         services.AddScoped<ISysCategoryService, SysCategoryService>();
 
+        // Site Settings
+        services.AddScoped<ISiteSettingRepository, SiteSettingRepository>();
+        services.AddScoped<ISiteSettingService, SiteSettingService>();
+
         return services;
     }
 }

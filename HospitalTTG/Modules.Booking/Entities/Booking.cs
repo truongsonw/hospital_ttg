@@ -11,4 +11,5 @@ public class Booking : AuditableEntity
     public DateTime AppointmentDate { get; set; }
     public string? Symptoms { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
+    public string? Note { get; set; }
 }

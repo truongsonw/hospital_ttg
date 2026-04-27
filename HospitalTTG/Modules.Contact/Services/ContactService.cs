@@ -1,9 +1,10 @@
 using Contracts.Contact.DTOs;
+using Contracts.Contact.Enums;
 using Contracts.Contact.Interfaces;
-using Modules.Contact.Entities;
 using Modules.Contact.Repositories;
 using Shared.Abstractions.Exceptions;
 using Shared.Abstractions.Interfaces;
+using Shared.Abstractions.Responses;
 
 namespace Modules.Contact.Services;
 
@@ -20,17 +21,18 @@ public class ContactService : IContactService
 
     public async Task<ContactDto> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var contact = await _contactRepository.GetByIdAsync(id, ct);
-        if (contact == null)
-            throw new NotFoundException(nameof(Entities.Contact), id);
+        var contact = await _contactRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Contact), id);
 
         return MapToDto(contact);
     }
 
-    public async Task<IReadOnlyList<ContactDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<PagedResponse<IReadOnlyList<ContactDto>>> GetPagedAsync(
+        ContactStatus? status, string? search, int page, int pageSize, CancellationToken ct = default)
     {
-        var contacts = await _contactRepository.GetAllAsync(ct);
-        return contacts.Select(MapToDto).ToList();
+        var (items, total) = await _contactRepository.GetPagedAsync(status, search, page, pageSize, ct);
+        var dtos = items.Select(MapToDto).ToList();
+        return new PagedResponse<IReadOnlyList<ContactDto>>(dtos, page, pageSize, total);
     }
 
     public async Task<ContactDto> CreateAsync(CreateContactRequest request, CancellationToken ct = default)
@@ -49,27 +51,36 @@ public class ContactService : IContactService
         return MapToDto(contact);
     }
 
+    public async Task<ContactDto> UpdateStatusAsync(Guid id, UpdateContactStatusRequest request, CancellationToken ct = default)
+    {
+        var contact = await _contactRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Contact), id);
+
+        contact.Status = request.Status;
+
+        _contactRepository.Update(contact);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return MapToDto(contact);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var contact = await _contactRepository.GetByIdAsync(id, ct);
-        if (contact == null)
-            throw new NotFoundException(nameof(Entities.Contact), id);
+        var contact = await _contactRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Contact), id);
 
         _contactRepository.Delete(contact);
         await _unitOfWork.SaveChangesAsync(ct);
     }
 
-    private static ContactDto MapToDto(Entities.Contact contact)
+    private static ContactDto MapToDto(Entities.Contact c) => new()
     {
-        return new ContactDto
-        {
-            Id = contact.Id,
-            FullName = contact.FullName,
-            Email = contact.Email,
-            Subject = contact.Subject,
-            Content = contact.Content,
-            Status = contact.Status,
-            CreatedAt = contact.CreatedAt
-        };
-    }
+        Id = c.Id,
+        FullName = c.FullName,
+        Email = c.Email,
+        Subject = c.Subject,
+        Content = c.Content,
+        Status = c.Status,
+        CreatedAt = c.CreatedAt
+    };
 }

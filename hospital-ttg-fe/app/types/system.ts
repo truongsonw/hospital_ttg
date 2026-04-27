@@ -78,3 +78,20 @@ export interface UpdateSysCategoryRequest {
   ext1s?: string | null;
   ext1d?: number | null;
 }
+
+export interface SiteSettingDto {
+  key: string;
+  value?: string | null;
+  group: string;
+  updatedAt?: string | null;
+  updatedBy?: string | null;
+}
+
+export interface SiteSettingItem {
+  key: string;
+  value?: string | null;
+}
+
+export interface UpdateSiteSettingsRequest {
+  settings: SiteSettingItem[];
+}

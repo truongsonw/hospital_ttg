@@ -183,17 +183,6 @@ export default function TinTucDetailPage() {
               </span>
             </div>
 
-            {/* Thumbnail */}
-            {content.thumbnail && (
-              <div className="rounded-xl overflow-hidden mb-6 border border-gray-200">
-                <img
-                  src={content.thumbnail}
-                  alt={content.title}
-                  className="w-full object-cover max-h-[480px]"
-                />
-              </div>
-            )}
-
             {/* Intro */}
             {content.intro && (
               <p className="text-gray-600 text-base leading-relaxed italic border-l-4 border-[#008046] pl-4 mb-6 bg-green-50 py-3 pr-3 rounded-r-lg">

@@ -1,9 +1,10 @@
 using Contracts.Booking.DTOs;
+using Contracts.Booking.Enums;
 using Contracts.Booking.Interfaces;
-using Modules.Booking.Entities;
 using Modules.Booking.Repositories;
 using Shared.Abstractions.Exceptions;
 using Shared.Abstractions.Interfaces;
+using Shared.Abstractions.Responses;
 
 namespace Modules.Booking.Services;
 
@@ -20,17 +21,18 @@ public class BookingService : IBookingService
 
     public async Task<BookingDto> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var booking = await _bookingRepository.GetByIdAsync(id, ct);
-        if (booking == null)
-            throw new NotFoundException(nameof(Entities.Booking), id);
+        var booking = await _bookingRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Booking), id);
 
         return MapToDto(booking);
     }
 
-    public async Task<IReadOnlyList<BookingDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<PagedResponse<IReadOnlyList<BookingDto>>> GetPagedAsync(
+        BookingStatus? status, string? search, int page, int pageSize, CancellationToken ct = default)
     {
-        var bookings = await _bookingRepository.GetAllAsync(ct);
-        return bookings.Select(MapToDto).ToList();
+        var (items, total) = await _bookingRepository.GetPagedAsync(status, search, page, pageSize, ct);
+        var dtos = items.Select(MapToDto).ToList();
+        return new PagedResponse<IReadOnlyList<BookingDto>>(dtos, page, pageSize, total);
     }
 
     public async Task<BookingDto> CreateAsync(CreateBookingRequest request, CancellationToken ct = default)
@@ -50,28 +52,39 @@ public class BookingService : IBookingService
         return MapToDto(booking);
     }
 
+    public async Task<BookingDto> UpdateStatusAsync(Guid id, UpdateBookingStatusRequest request, CancellationToken ct = default)
+    {
+        var booking = await _bookingRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Booking), id);
+
+        booking.Status = request.Status;
+        booking.Note = request.Note;
+
+        _bookingRepository.Update(booking);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return MapToDto(booking);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var booking = await _bookingRepository.GetByIdAsync(id, ct);
-        if (booking == null)
-            throw new NotFoundException(nameof(Entities.Booking), id);
+        var booking = await _bookingRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Entities.Booking), id);
 
         _bookingRepository.Delete(booking);
         await _unitOfWork.SaveChangesAsync(ct);
     }
 
-    private static BookingDto MapToDto(Entities.Booking booking)
+    private static BookingDto MapToDto(Entities.Booking b) => new()
     {
-        return new BookingDto
-        {
-            Id = booking.Id,
-            FullName = booking.FullName,
-            PhoneNumber = booking.PhoneNumber,
-            DateOfBirth = booking.DateOfBirth,
-            AppointmentDate = booking.AppointmentDate,
-            Symptoms = booking.Symptoms,
-            Status = booking.Status,
-            CreatedAt = booking.CreatedAt
-        };
-    }
+        Id = b.Id,
+        FullName = b.FullName,
+        PhoneNumber = b.PhoneNumber,
+        DateOfBirth = b.DateOfBirth,
+        AppointmentDate = b.AppointmentDate,
+        Symptoms = b.Symptoms,
+        Status = b.Status,
+        Note = b.Note,
+        CreatedAt = b.CreatedAt
+    };
 }

@@ -69,7 +69,7 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nháº­p ná
       TableRow,
       TableCell,
       TableHeader,
-      Youtube.configure({ width: '100%', height: 480 }),
+      Youtube.configure({ width: 640, height: 480 }),
       CharacterCount,
       Placeholder.configure({ placeholder }),
     ],
