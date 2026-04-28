@@ -6,6 +6,7 @@ import { z } from "zod";
 import { CheckCircle } from "lucide-react";
 import type { Route } from "./+types/contact";
 import { createContact } from "~/services/contact.service";
+import { useSiteSettings } from "~/context/site-settings.context";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -25,6 +26,18 @@ type FormValues = z.infer<typeof schema>;
 
 export default function ContactSection() {
   const [submitted, setSubmitted] = useState(false);
+  const s = useSiteSettings();
+
+  const address = s["address"] || "";
+  const phone = s["phone"] || "";
+  const email = s["email"] || "";
+  const workingHours = s["working_hours"] || "";
+  const facebook = s["facebook"] || "";
+  const youtube = s["youtube"] || "";
+  const zalo = s["zalo"] || "";
+  const tiktok = s["tiktok"] || "";
+
+  const hasSocial = facebook || youtube || zalo || tiktok;
 
   const {
     register,
@@ -153,40 +166,69 @@ export default function ContactSection() {
 
           {/* Right — Info */}
           <div className="space-y-10">
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Địa chỉ</h4>
-              <p className="text-gray-800 leading-relaxed">
-                Số 79, đường 420, xã Kim Quan, huyện Thạch Thất, TP.Hà Nội
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Liên lạc</h4>
-              <p className="text-gray-800">
-                024 33842217
-                <br />
-                Bvdktth@hanoi.gov.vn
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Giờ làm việc</h4>
-              <p className="text-gray-800">
-                Thứ Hai – Thứ Sáu
-                <br />
-                7:30 – 16:00
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-4">Mạng xã hội</h4>
-              <div className="flex flex-wrap gap-6 text-sm tracking-widest uppercase text-gray-600">
-                <Link to="https://www.facebook.com/benhvienthachthat.vn/?ref=page_internal">
-                  Facebook
-                </Link>
-                <Link to="#">Youtube</Link>
+            {address && (
+              <div>
+                <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Địa chỉ</h4>
+                <p className="text-gray-800 leading-relaxed">{address}</p>
               </div>
-            </div>
+            )}
+
+            {(phone || email) && (
+              <div>
+                <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Liên lạc</h4>
+                <p className="text-gray-800 space-y-1">
+                  {phone && (
+                    <a href={`tel:${phone}`} className="block hover:text-green-600 transition">
+                      {phone}
+                    </a>
+                  )}
+                  {email && (
+                    <a href={`mailto:${email}`} className="block hover:text-green-600 transition">
+                      {email}
+                    </a>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {workingHours && (
+              <div>
+                <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-3">Giờ làm việc</h4>
+                <p className="text-gray-800 whitespace-pre-line">{workingHours}</p>
+              </div>
+            )}
+
+            {hasSocial && (
+              <div>
+                <h4 className="text-xs uppercase tracking-widest text-gray-500 mb-4">Mạng xã hội</h4>
+                <div className="flex flex-wrap gap-6 text-sm tracking-widest uppercase text-gray-600">
+                  {facebook && (
+                    <Link to={facebook} target="_blank" rel="noopener noreferrer"
+                      className="hover:text-green-600 transition">
+                      Facebook
+                    </Link>
+                  )}
+                  {youtube && (
+                    <Link to={youtube} target="_blank" rel="noopener noreferrer"
+                      className="hover:text-green-600 transition">
+                      Youtube
+                    </Link>
+                  )}
+                  {zalo && (
+                    <Link to={zalo} target="_blank" rel="noopener noreferrer"
+                      className="hover:text-green-600 transition">
+                      Zalo
+                    </Link>
+                  )}
+                  {tiktok && (
+                    <Link to={tiktok} target="_blank" rel="noopener noreferrer"
+                      className="hover:text-green-600 transition">
+                      TikTok
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -6,7 +6,6 @@ import {
   IconCamera,
   IconChartBar,
   IconDashboard,
-  IconContract,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
@@ -29,7 +28,6 @@ import {
 } from "@tabler/icons-react"
 import { Link } from "react-router"
 
-import { NavBooks } from "~/components/nav-books"
 import { NavMain } from "~/components/nav-main"
 import { NavSecondary } from "~/components/nav-secondary"
 import { NavUser } from "~/components/nav-user"
@@ -129,13 +127,6 @@ const data = {
       icon: IconSearch,
     },
   ],
-  books: [
-    {
-      name: "Quản lý kho sách",
-      url: "#",
-      icon: IconContract,
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -222,7 +213,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <NavBooks items={data.books} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
@@ -231,6 +221,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
-
-
 

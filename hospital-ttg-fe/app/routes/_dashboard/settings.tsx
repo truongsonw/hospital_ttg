@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import {
 } from "~/components/ui/dialog";
 import { useAuth } from "~/context/auth.context";
 import { ApiError } from "~/lib/api";
+import FileUploadInput from "~/components/shared/FileUploadInput";
 import {
   getAllSiteSettings,
   upsertSiteSettings,
@@ -201,6 +202,7 @@ function SiteSettingsForm() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { isSubmitting, isDirty },
   } = useForm<SiteSettingsValues>({
     resolver: zodResolver(siteSettingsSchema),
@@ -250,8 +252,19 @@ function SiteSettingsForm() {
             <Input id="site_name" placeholder="Bệnh viện TTG" {...register("site_name")} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="logo_url">URL Logo</Label>
-            <Input id="logo_url" placeholder="https://..." {...register("logo_url")} />
+            <Label>Logo</Label>
+            <Controller
+              name="logo_url"
+              control={control}
+              render={({ field }) => (
+                <FileUploadInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  accept="image/*"
+                  label="ảnh logo"
+                />
+              )}
+            />
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="site_description">Mô tả ngắn</Label>

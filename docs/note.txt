@@ -1,0 +1,11 @@
+- Quản lý nội dung:
+	+ thumnail hiển thị hình ảnh.
+	+ bộ soạn thảo tích hợp thêm bộ uploads ảnh.
+	+ tags cho gợi ý, và điền kiểu tab
+- Module gửi mail
+- Wrapper error
+- Cập nhật site settings cho giao diện người dùng
+- Quản lý menu dashboard và quản lý Menu giao diện người dùng
+- Báo cáo thống kê, xuất excel.
+- Trang dashboard
+- Phân quyền hệ thống

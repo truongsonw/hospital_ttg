@@ -11,13 +11,13 @@ import { Badge } from "~/components/ui/badge";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "~/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "~/components/ui/table";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter,
+} from "~/components/ui/drawer";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "~/components/ui/dialog";
 import { getAllDepartments, createDepartment, updateDepartment, deleteDepartment } from "~/services/department.service";
 import type { DepartmentDto } from "~/types/doctor";
@@ -35,116 +35,89 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-function DepartmentDialog({
-  open,
-  onOpenChange,
-  initial,
+function DepartmentForm({
+  formId,
+  defaultValues,
   allDepts,
-  onSuccess,
+  excludeId,
+  onSubmit,
 }: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  initial?: DepartmentDto | null;
+  formId: string;
+  defaultValues?: Partial<FormValues>;
   allDepts: DepartmentDto[];
-  onSuccess: (dept: DepartmentDto) => void;
+  excludeId?: string;
+  onSubmit: (values: FormValues) => Promise<void>;
 }) {
-  const isEdit = !!initial;
-  const topLevel = allDepts.filter((d) => !d.parentId);
+  const topLevel = allDepts.filter((d) => !d.parentId && d.id !== excludeId);
 
-  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isSubmitting } } =
-    useForm<FormValues>({
-      resolver: zodResolver(schema),
-      values: initial
-        ? { name: initial.name, description: initial.description ?? "", parentId: initial.parentId ?? "", sortOrder: initial.sortOrder, isActive: initial.isActive }
-        : { name: "", description: "", parentId: "", sortOrder: 0, isActive: true },
-    });
-
-  async function onSubmit(values: FormValues) {
-    try {
-      const payload = { ...values, parentId: values.parentId || null };
-      const result = isEdit
-        ? await updateDepartment(initial!.id, payload)
-        : await createDepartment(payload);
-      toast.success(isEdit ? "Cập nhật thành công." : "Thêm khoa thành công.");
-      onSuccess(result);
-      onOpenChange(false);
-    } catch {
-      toast.error("Thao tác thất bại, vui lòng thử lại.");
-    }
-  }
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      description: "",
+      parentId: "",
+      sortOrder: 0,
+      isActive: true,
+      ...defaultValues,
+    },
+  });
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Chỉnh sửa khoa" : "Thêm khoa mới"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Tên khoa *</Label>
-            <Input id="name" placeholder="VD: Khoa Nhi" {...register("name")} />
-            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-          </div>
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label>Tên khoa *</Label>
+        <Input placeholder="VD: Khoa Nhi" {...register("name")} />
+        {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+      </div>
 
-          <div className="space-y-1.5">
-            <Label>Thuộc nhóm (để trống nếu là nhóm gốc)</Label>
+      <div className="space-y-1.5">
+        <Label>Thuộc nhóm (để trống nếu là nhóm gốc)</Label>
+        <select
+          {...register("parentId")}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        >
+          <option value="">— Không có (nhóm gốc) —</option>
+          {topLevel.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Mô tả</Label>
+        <Textarea rows={3} placeholder="Mô tả ngắn..." {...register("description")} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label>Thứ tự</Label>
+          <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Hiển thị</Label>
+          <div className="flex items-center h-10">
             <Controller
-              name="parentId"
+              name="isActive"
               control={control}
               render={({ field }) => (
-                <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="— Không có (nhóm gốc) —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">— Không có (nhóm gốc) —</SelectItem>
-                    {topLevel
-                      .filter((d) => d.id !== initial?.id)
-                      .map((d) => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               )}
             />
           </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea id="description" rows={3} placeholder="Mô tả ngắn..." {...register("description")} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="sortOrder">Thứ tự</Label>
-              <Input id="sortOrder" type="number" {...register("sortOrder", { valueAsNumber: true })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Hiển thị</Label>
-              <div className="flex items-center h-10">
-                <Switch checked={watch("isActive")} onCheckedChange={(v) => setValue("isActive", v)} />
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Hủy</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Đang lưu..." : isEdit ? "Cập nhật" : "Thêm mới"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </form>
   );
 }
 
 export default function DepartmentsPage() {
   const [items, setItems] = React.useState<DepartmentDto[]>([]);
   const [loading, setLoading] = React.useState(false);
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<DepartmentDto | null>(null);
+  const [createOpen, setCreateOpen] = React.useState(false);
+  const [editTarget, setEditTarget] = React.useState<DepartmentDto | null>(null);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const [createSubmitting, setCreateSubmitting] = React.useState(false);
+  const [editSubmitting, setEditSubmitting] = React.useState(false);
 
   async function load() {
     setLoading(true);
@@ -155,11 +128,33 @@ export default function DepartmentsPage() {
 
   React.useEffect(() => { load(); }, []);
 
-  function handleSuccess(dept: DepartmentDto) {
-    setItems((prev) => {
-      const idx = prev.findIndex((d) => d.id === dept.id);
-      return idx >= 0 ? prev.map((d) => (d.id === dept.id ? dept : d)) : [...prev, dept];
-    });
+  async function handleCreate(values: FormValues) {
+    setCreateSubmitting(true);
+    try {
+      const result = await createDepartment({ ...values, parentId: values.parentId || null });
+      toast.success("Thêm khoa thành công.");
+      setItems((prev) => [...prev, result]);
+      setCreateOpen(false);
+    } catch {
+      toast.error("Thao tác thất bại, vui lòng thử lại.");
+    } finally {
+      setCreateSubmitting(false);
+    }
+  }
+
+  async function handleUpdate(values: FormValues) {
+    if (!editTarget) return;
+    setEditSubmitting(true);
+    try {
+      const result = await updateDepartment(editTarget.id, { ...values, parentId: values.parentId || null });
+      toast.success("Cập nhật thành công.");
+      setItems((prev) => prev.map((d) => (d.id === result.id ? result : d)));
+      setEditTarget(null);
+    } catch {
+      toast.error("Thao tác thất bại, vui lòng thử lại.");
+    } finally {
+      setEditSubmitting(false);
+    }
   }
 
   async function handleDelete(id: string) {
@@ -173,7 +168,7 @@ export default function DepartmentsPage() {
     }
   }
 
-  // Build tree: top-level first, then children indented
+  // Build tree display rows
   const topLevel = items.filter((d) => !d.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
   const getChildren = (parentId: string) =>
     items.filter((d) => d.parentId === parentId).sort((a, b) => a.sortOrder - b.sortOrder);
@@ -185,7 +180,6 @@ export default function DepartmentsPage() {
       rows.push({ dept: child, isChild: true });
     }
   }
-  // standalone (no parent and not a parent itself)
   const parentIds = new Set(items.filter((d) => !d.parentId).map((d) => d.id));
   for (const d of items) {
     if (d.parentId && !parentIds.has(d.parentId)) {
@@ -200,7 +194,7 @@ export default function DepartmentsPage() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-zinc-100">Quản lý khoa</h2>
           <p className="text-sm text-gray-500 mt-0.5">Nhóm và khoa/chuyên khoa trong bệnh viện.</p>
         </div>
-        <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
+        <Button onClick={() => setCreateOpen(true)}>
           <IconPlus className="h-4 w-4 mr-1" /> Thêm khoa
         </Button>
       </div>
@@ -243,7 +237,7 @@ export default function DepartmentsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditing(dept); setDialogOpen(true); }}>
+                      <Button variant="ghost" size="icon" onClick={() => setEditTarget(dept)}>
                         <IconPencil className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(dept.id)}>
@@ -258,18 +252,71 @@ export default function DepartmentsPage() {
         </Table>
       </div>
 
-      <DepartmentDialog open={dialogOpen} onOpenChange={setDialogOpen} initial={editing} allDepts={items} onSuccess={handleSuccess} />
+      {/* Create Drawer */}
+      <Drawer open={createOpen} onOpenChange={setCreateOpen} direction="right">
+        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
+          <DrawerHeader className="border-b px-6 py-4">
+            <DrawerTitle>Thêm khoa mới</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <DepartmentForm
+              formId="create-dept-form"
+              allDepts={items}
+              onSubmit={handleCreate}
+            />
+          </div>
+          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>Hủy</Button>
+            <Button type="submit" form="create-dept-form" disabled={createSubmitting}>
+              {createSubmitting ? "Đang lưu..." : "Thêm mới"}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
+      {/* Edit Drawer */}
+      <Drawer open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }} direction="right">
+        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
+          <DrawerHeader className="border-b px-6 py-4">
+            <DrawerTitle>Chỉnh sửa khoa</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {editTarget && (
+              <DepartmentForm
+                formId="edit-dept-form"
+                defaultValues={{
+                  name: editTarget.name,
+                  description: editTarget.description ?? "",
+                  parentId: editTarget.parentId ?? "",
+                  sortOrder: editTarget.sortOrder,
+                  isActive: editTarget.isActive,
+                }}
+                allDepts={items}
+                excludeId={editTarget.id}
+                onSubmit={handleUpdate}
+              />
+            )}
+          </div>
+          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>Hủy</Button>
+            <Button type="submit" form="edit-dept-form" disabled={editSubmitting}>
+              {editSubmitting ? "Đang lưu..." : "Lưu"}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Delete Dialog */}
       <Dialog open={!!deleteId} onOpenChange={(v) => { if (!v) setDeleteId(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Xác nhận xóa</DialogTitle></DialogHeader>
-          <p className="text-sm text-gray-600 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             Bạn có chắc muốn xóa khoa này? Bác sĩ thuộc khoa sẽ mất liên kết.
           </p>
-          <DialogFooter>
+          <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeleteId(null)}>Hủy</Button>
             <Button variant="destructive" onClick={() => deleteId && handleDelete(deleteId)}>Xóa</Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

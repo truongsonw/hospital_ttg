@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Menu, X, Search as SearchIcon, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { useSiteSettings } from "~/context/site-settings.context";
 
 const menuItems = [
   { title: "Trang chủ", href: "/" },
   {
     title: "Giới thiệu",
     children: [
-      {
-        title: "Giới thiệu chung",
-        href: "/introduce/general_introduction",
-      },
-      { title: "Ban lãnh đạo", href: "/introduce/management" },
+      { title: "Giới thiệu chung", href: "/about" },
+    ],
+  },
+  {
+    title: "Đội ngũ bác sĩ",
+    children: [
+      { title: "Ban lãnh đạo", href: "/ban-lanh-dao" },
+      { title: "Đội ngũ chuyên gia", href: "/doi-ngu-chuyen-gia" },
     ],
   },
   {
@@ -19,38 +23,6 @@ const menuItems = [
     href: "/tin-tuc",
     children: [
       { title: "Tất cả tin tức", href: "/tin-tuc" },
-      { title: "Tin nội bộ", href: "/tin-tuc?type=article&categoryId=" },
-      { title: "Câu chuyện bệnh nhân", href: "/news/patient_story" },
-    ],
-  },
-  {
-    title: "Thông tin hoạt động",
-    children: [
-      { title: "Hoạt động chuyên môn", href: "/operational_information/professional_activities" },
-      { title: "Hoạt động Quản lý Chất lượng", href: "/operational_information/quality_management_activities" },
-      { title: "Hoạt động Công tác xã hội", href: "/operational_information/social_work_activities" },
-    ],
-  },
-  {
-    title: "Dịch vụ y khoa",
-    children: [
-      { title: "Giá DVKTYT", href: "/medical_services/psychological_counseling_services" },
-      { title: "Dịch vụ tư vấn tâm lý", href: "/medical_services/service_price" },
-      { title: "Chụp X-quang", href: "/medical_services/x-ray" },
-    ],
-  },
-  {
-    title: "Thư viện",
-    children: [
-      { title: "Ảnh", href: "/library/image" },
-      { title: "Video", href: "/library/video" },
-    ],
-  },
-  {
-    title: "Tuyển dụng & Thông báo",
-    children: [
-      { title: "Tuyển dụng", href: "/recruitment_announcements/recruitment" },
-      { title: "Thông báo", href: "/recruitment_announcements/notification" },
     ],
   },
   { title: "Liên hệ", href: "/contact" },
@@ -59,25 +31,31 @@ const menuItems = [
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
   const [openSub, setOpenSub] = useState<number | null>(null);
+  const s = useSiteSettings();
+
+  const hotline = s["hotline"] || "0966101616";
+  const logoUrl = s["logo_url"] || "/images/logo/logo.jpg";
+  const siteName = s["site_name"] || "BỆNH VIỆN ĐA KHOA THẠCH THẤT";
 
   const toggleSubMenu = (index: number) => {
     setOpenSub(openSub === index ? null : index);
   };
+
   return (
     <header className="w-full relative z-50">
       {/* TOP BAR */}
       <div className="bg-green-600 text-white text-sm">
         <div className="max-w-7xl mx-auto flex justify-end gap-3 px-4 py-2">
           <a
-            href="tel:0966101616"
+            href={`tel:${hotline}`}
             className="border border-white px-3 py-1 rounded-full hover:bg-white hover:text-green-600 transition">
-            Đường dây nóng: 0966101616
+            Đường dây nóng: {hotline}
           </a>
-          <a
-            href="#"
+          <Link
+            to="/contact"
             className="border border-white px-3 py-1 rounded-full hover:bg-white hover:text-green-600 transition">
             Đặt lịch khám
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -88,22 +66,20 @@ export default function Header() {
           <Link to="/">
             <div className="flex items-center gap-3">
               <img
-                src="/images/logo/logo.jpg"
+                src={logoUrl}
                 alt="Logo"
                 width={60}
                 height={60}
                 className="w-[60px] h-[60px] object-cover"
               />
               <div>
-                <h4 className="font-bold text-gray-800 text-sm sm:text-base">
-                  BỆNH VIỆN ĐA KHOA THẠCH THẤT
+                <h4 className="font-bold text-gray-800 text-sm sm:text-base uppercase">
+                  {siteName}
                 </h4>
-                <p className="hidden sm:block text-green-600 text-xs">
-                  THACH THAT GENERAL HOSPITAL
-                </p>
               </div>
             </div>
           </Link>
+
           <div className="hidden lg:block flex-1 px-6">
             <div className="relative h-[60px] w-full">
               <img
@@ -113,6 +89,7 @@ export default function Header() {
               />
             </div>
           </div>
+
           {/* SEARCH (Desktop only) */}
           <div className="hidden lg:flex items-center">
             <input
@@ -135,7 +112,7 @@ export default function Header() {
       </div>
 
       {/* DESKTOP NAV */}
-      <nav className="hidden lg:block bg-white ">
+      <nav className="hidden lg:block bg-white">
         <ul className="max-w-7xl mx-auto flex justify-center gap-8 py-4 text-[15px] font-medium">
           {menuItems.map((item, index) => (
             <li key={index} className="relative group">
@@ -150,7 +127,6 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* SUBMENU */}
               {item.children && (
                 <div
                   className="
@@ -201,9 +177,7 @@ export default function Header() {
                 <Link
                   to={item.href || "#"}
                   className="block py-2 text-gray-800 flex-1"
-                  onClick={() =>
-                    !item.children && setOpenMenu(false)
-                  }>
+                  onClick={() => !item.children && setOpenMenu(false)}>
                   {item.title}
                 </Link>
 
@@ -218,7 +192,6 @@ export default function Header() {
                 )}
               </div>
 
-              {/* SUBMENU ACCORDION */}
               {item.children && (
                 <div
                   className={`overflow-hidden transition-all duration-300 ${
