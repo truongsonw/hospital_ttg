@@ -1,4 +1,4 @@
-import { apiFetch } from '~/lib/api';
+import { apiFetch, apiFetchRaw } from '~/lib/api';
 import type { BookingDto, CreateBookingRequest, PagedBookingResponse, UpdateBookingStatusRequest } from '~/types/booking';
 import { BookingStatus } from '~/types/booking';
 
@@ -13,8 +13,7 @@ export async function getPagedBookings(params: {
   if (params.search) q.set('search', params.search);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 10));
-  const res = await apiFetch<BookingDto[]>(`/api/bookings?${q}`);
-  return res as unknown as PagedBookingResponse;
+  return apiFetchRaw<PagedBookingResponse>(`/api/bookings?${q}`);
 }
 
 export async function getBookingById(id: string): Promise<BookingDto> {

@@ -65,6 +65,7 @@
     <ProjectReference Include="..\Modules.Booking\Modules.Booking.csproj" />
     <ProjectReference Include="..\Modules.Storage\Modules.Storage.csproj" />
     <ProjectReference Include="..\Modules.Doctor\Modules.Doctor.csproj" />
+    <ProjectReference Include="..\Modules.Mail\Modules.Mail.csproj" />
   </ItemGroup>
 
 </Project>

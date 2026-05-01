@@ -1,4 +1,4 @@
-import { apiFetch } from '~/lib/api';
+import { apiFetch, apiFetchRaw } from '~/lib/api';
 import type { DoctorDto, CreateDoctorRequest, UpdateDoctorRequest, PagedDoctorResponse } from '~/types/doctor';
 
 export async function getManagementDoctors(): Promise<DoctorDto[]> {
@@ -19,8 +19,7 @@ export async function getPagedDoctors(params: {
   if (params.search) q.set('search', params.search);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 12));
-  const res = await apiFetch<DoctorDto[]>(`/api/doctors?${q}`);
-  return res as unknown as PagedDoctorResponse;
+  return apiFetchRaw<PagedDoctorResponse>(`/api/doctors?${q}`);
 }
 
 export async function getFeaturedDoctors(limit = 4): Promise<DoctorDto[]> {

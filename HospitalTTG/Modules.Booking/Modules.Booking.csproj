@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Contracts.Booking\Contracts.Booking.csproj" />
+    <ProjectReference Include="..\Contracts.Mail\Contracts.Mail.csproj" />
     <ProjectReference Include="..\Shared.Abstractions\Shared.Abstractions.csproj" />
     <ProjectReference Include="..\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>

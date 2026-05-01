@@ -64,6 +64,18 @@ public class ContactsController : ControllerBase
         return Ok(new ApiResponse<ContactDto>(result, "Contact status updated successfully"));
     }
 
+    [HttpPost("{id:guid}/reply")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<ContactDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<ContactDto>>> Reply(
+        Guid id, ReplyContactRequest request, CancellationToken ct)
+    {
+        var result = await _contactService.ReplyAsync(id, request, ct);
+        return Ok(new ApiResponse<ContactDto>(result, "Contact reply email sent successfully"));
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]

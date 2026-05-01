@@ -3,6 +3,7 @@
     <Project Path="Contracts.Article/Contracts.Article.csproj" />
     <Project Path="Contracts.Auth/Contracts.Auth.csproj" />
     <Project Path="Contracts.Doctor/Contracts.Doctor.csproj" />
+    <Project Path="Contracts.Mail/Contracts.Mail.csproj" />
     <Project Path="Contracts.Storage/Contracts.Storage.csproj" />
     <Project Path="Contracts.System/Contracts.System.csproj" />
     <Project Path="Contracts.Contact/Contracts.Contact.csproj" />
@@ -15,6 +16,7 @@
     <Project Path="Modules.Article/Modules.Article.csproj" />
     <Project Path="Modules.Auth/Modules.Auth.csproj" />
     <Project Path="Modules.Doctor/Modules.Doctor.csproj" />
+    <Project Path="Modules.Mail/Modules.Mail.csproj" />
     <Project Path="Modules.Storage/Modules.Storage.csproj" />
     <Project Path="Modules.System/Modules.System.csproj" />
     <Project Path="Modules.Contact/Modules.Contact.csproj" />

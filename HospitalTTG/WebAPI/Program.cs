@@ -5,6 +5,7 @@ using Modules.Contact;
 using Modules.Booking;
 using Modules.Storage;
 using Modules.Doctor;
+using Modules.Mail;
 using Shared.Infrastructure;
 using Shared.Infrastructure.Middleware;
 
@@ -36,6 +37,7 @@ builder.Services.AddContactModule(builder.Configuration);
 builder.Services.AddBookingModule(builder.Configuration);
 builder.Services.AddStorageModule(builder.Configuration);
 builder.Services.AddDoctorModule(builder.Configuration);
+builder.Services.AddMailModule(builder.Configuration);
 
 var app = builder.Build();
 

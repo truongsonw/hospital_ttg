@@ -14,7 +14,21 @@ export function setTokenAccessors(
   _refreshTokens = refreshTokens;
 }
 
-async function doFetch<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'data' in value &&
+    'succeeded' in value
+  );
+}
+
+async function readJson<T>(res: Response): Promise<T> {
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
+async function doFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = _getToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -30,17 +44,21 @@ async function doFetch<T>(path: string, options: RequestInit = {}): Promise<ApiR
     throw error;
   }
 
-  return res.json() as Promise<ApiResponse<T>>;
+  return readJson<T>(res);
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  return apiFetchRaw<ApiResponse<T>>(path, options);
+}
+
+export async function apiFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
-    return await doFetch<T>(path, options);
+    return await doFetchRaw<T>(path, options);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       const refreshed = await _refreshTokens();
       if (refreshed) {
-        return doFetch<T>(path, options);
+        return doFetchRaw<T>(path, options);
       }
       // Redirect to login if refresh failed
       if (typeof window !== 'undefined') {
@@ -49,6 +67,11 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     }
     throw err;
   }
+}
+
+export async function apiFetchData<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await apiFetchRaw<ApiResponse<T> | T>(path, options);
+  return isApiResponse<T>(res) ? res.data : res;
 }
 
 async function doUpload<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
@@ -62,7 +85,7 @@ async function doUpload<T>(path: string, formData: FormData): Promise<ApiRespons
     const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, body?.detail ?? body?.title ?? 'Upload failed', body?.extensions?.errors);
   }
-  return res.json() as Promise<ApiResponse<T>>;
+  return readJson<ApiResponse<T>>(res);
 }
 
 export async function apiUpload<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {

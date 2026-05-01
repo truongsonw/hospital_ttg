@@ -39,4 +39,9 @@ export interface UpdateContactStatusRequest {
   status: ContactStatus;
 }
 
+export interface ReplyContactRequest {
+  subject: string;
+  body: string;
+}
+
 export type PagedContactResponse = PagedApiResponse<ContactDto[]>;

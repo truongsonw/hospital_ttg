@@ -1,6 +1,5 @@
 import { apiFetch } from '~/lib/api';
 import type { DepartmentDto, CreateDepartmentRequest, UpdateDepartmentRequest } from '~/types/doctor';
-import type { ApiResponse } from '~/types/auth';
 
 export async function getAllDepartments(isActive?: boolean): Promise<DepartmentDto[]> {
   const q = new URLSearchParams();

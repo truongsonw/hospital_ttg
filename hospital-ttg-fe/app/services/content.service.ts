@@ -1,4 +1,4 @@
-import { apiFetch } from '~/lib/api';
+import { apiFetch, apiFetchData, apiFetchRaw } from '~/lib/api';
 import type { ContentDto, CreateContentRequest, PagedApiResponse, UpdateContentRequest } from '~/types/article';
 
 export async function getPagedContents(params: {
@@ -14,29 +14,25 @@ export async function getPagedContents(params: {
   if (params.status !== '' && params.status !== undefined) q.set('status', params.status);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 10));
-  const res = await apiFetch<ContentDto[]>(`/api/contents?${q}`);
-  return res as unknown as PagedApiResponse<ContentDto[]>;
+  return apiFetchRaw<PagedApiResponse<ContentDto[]>>(`/api/contents?${q}`);
 }
 
 export async function getContentById(id: string): Promise<ContentDto> {
-  const res = await apiFetch<ContentDto>(`/api/contents/${id}`);
-  return (res.data ?? res) as unknown as ContentDto;
+  return apiFetchData<ContentDto>(`/api/contents/${id}`);
 }
 
 export async function createContent(req: CreateContentRequest): Promise<ContentDto> {
-  const res = await apiFetch<ContentDto>('/api/contents', {
+  return apiFetchData<ContentDto>('/api/contents', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return (res.data ?? res) as unknown as ContentDto;
 }
 
 export async function updateContent(id: string, req: UpdateContentRequest): Promise<ContentDto> {
-  const res = await apiFetch<ContentDto>(`/api/contents/${id}`, {
+  return apiFetchData<ContentDto>(`/api/contents/${id}`, {
     method: 'PUT',
     body: JSON.stringify(req),
   });
-  return (res.data ?? res) as unknown as ContentDto;
 }
 
 export async function deleteContent(id: string): Promise<void> {
@@ -45,8 +41,7 @@ export async function deleteContent(id: string): Promise<void> {
 
 export async function getContentBySlug(slug: string): Promise<ContentDto | null> {
   try {
-    const res = await apiFetch<ContentDto>(`/api/contents/slug/${slug}`);
-    return (res.data ?? res) as unknown as ContentDto;
+    return await apiFetchData<ContentDto>(`/api/contents/slug/${slug}`);
   } catch {
     return null;
   }

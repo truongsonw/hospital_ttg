@@ -1,6 +1,8 @@
 using Contracts.Booking.DTOs;
 using Contracts.Booking.Enums;
 using Contracts.Booking.Interfaces;
+using Contracts.Mail.Interfaces;
+using Microsoft.Extensions.Logging;
 using Modules.Booking.Repositories;
 using Shared.Abstractions.Exceptions;
 using Shared.Abstractions.Interfaces;
@@ -12,11 +14,19 @@ public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMailSender _mailSender;
+    private readonly ILogger<BookingService> _logger;
 
-    public BookingService(IBookingRepository bookingRepository, IUnitOfWork unitOfWork)
+    public BookingService(
+        IBookingRepository bookingRepository,
+        IUnitOfWork unitOfWork,
+        IMailSender mailSender,
+        ILogger<BookingService> logger)
     {
         _bookingRepository = bookingRepository;
         _unitOfWork = unitOfWork;
+        _mailSender = mailSender;
+        _logger = logger;
     }
 
     public async Task<BookingDto> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -48,6 +58,7 @@ public class BookingService : IBookingService
 
         await _bookingRepository.AddAsync(booking, ct);
         await _unitOfWork.SaveChangesAsync(ct);
+        await NotifyBookingCreatedAsync(booking, ct);
 
         return MapToDto(booking);
     }
@@ -87,4 +98,30 @@ public class BookingService : IBookingService
         Note = b.Note,
         CreatedAt = b.CreatedAt
     };
+
+    private async Task NotifyBookingCreatedAsync(Entities.Booking booking, CancellationToken ct)
+    {
+        try
+        {
+            await _mailSender.SendSystemNotificationAsync(
+                "Hospital TTG - Có lịch khám mới",
+                $"""
+                Có lịch khám mới từ website.
+
+                Họ tên: {booking.FullName}
+                Số điện thoại: {booking.PhoneNumber}
+                Ngày sinh: {booking.DateOfBirth:dd/MM/yyyy}
+                Ngày hẹn: {booking.AppointmentDate:dd/MM/yyyy HH:mm}
+                Triệu chứng: {booking.Symptoms ?? "(Không có)"}
+
+                Mã booking: {booking.Id}
+                Thời gian tạo: {booking.CreatedAt:dd/MM/yyyy HH:mm} UTC
+                """,
+                ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send booking notification email for booking {BookingId}", booking.Id);
+        }
+    }
 }

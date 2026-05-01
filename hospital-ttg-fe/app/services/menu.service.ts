@@ -1,5 +1,4 @@
 import { apiFetch } from '~/lib/api';
-import type { ApiResponse } from '~/types/auth';
 import type { AssignRoleMenuRequest, CreateMenuRequest, MenuDto, UpdateMenuRequest } from '~/types/system';
 
 export async function getAllMenus(): Promise<MenuDto[]> {

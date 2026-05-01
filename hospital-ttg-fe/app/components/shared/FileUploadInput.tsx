@@ -47,7 +47,8 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
   }
 
   const hasValue = !!value;
-  const isImage = hasValue && isImageUrl(value!);
+  const isImageAccept = accept.toLowerCase().includes('image/');
+  const isImage = hasValue && (isImageAccept || isImageUrl(value!));
 
   return (
     <div className="space-y-2">

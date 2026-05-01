@@ -1,4 +1,4 @@
-import { apiFetch } from '~/lib/api';
+import { apiFetch, apiFetchData, apiFetchRaw } from '~/lib/api';
 import type { CategoryDto, CreateCategoryRequest, PagedApiResponse, UpdateCategoryRequest } from '~/types/article';
 
 export async function getPagedCategories(params: {
@@ -12,8 +12,7 @@ export async function getPagedCategories(params: {
   if (params.lang) q.set('lang', params.lang);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 10));
-  const res = await apiFetch<CategoryDto[]>(`/api/categories?${q}`);
-  return res as unknown as PagedApiResponse<CategoryDto[]>;
+  return apiFetchRaw<PagedApiResponse<CategoryDto[]>>(`/api/categories?${q}`);
 }
 
 export async function getAllCategoriesList(): Promise<CategoryDto[]> {
@@ -22,25 +21,21 @@ export async function getAllCategoriesList(): Promise<CategoryDto[]> {
 }
 
 export async function getCategoryById(id: string): Promise<CategoryDto> {
-  const res = await apiFetch<CategoryDto>(`/api/categories/${id}`);
-  // GetById returns raw DTO (not wrapped in ApiResponse)
-  return (res.data ?? res) as unknown as CategoryDto;
+  return apiFetchData<CategoryDto>(`/api/categories/${id}`);
 }
 
 export async function createCategory(req: CreateCategoryRequest): Promise<CategoryDto> {
-  const res = await apiFetch<CategoryDto>('/api/categories', {
+  return apiFetchData<CategoryDto>('/api/categories', {
     method: 'POST',
     body: JSON.stringify(req),
   });
-  return (res.data ?? res) as unknown as CategoryDto;
 }
 
 export async function updateCategory(id: string, req: UpdateCategoryRequest): Promise<CategoryDto> {
-  const res = await apiFetch<CategoryDto>(`/api/categories/${id}`, {
+  return apiFetchData<CategoryDto>(`/api/categories/${id}`, {
     method: 'PUT',
     body: JSON.stringify(req),
   });
-  return (res.data ?? res) as unknown as CategoryDto;
 }
 
 export async function deleteCategory(id: string): Promise<void> {

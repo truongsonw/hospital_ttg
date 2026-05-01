@@ -1,8 +1,11 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { IconTrash, IconMail } from "@tabler/icons-react";
+import { ApiError } from "~/lib/api";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -17,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "~/components/ui/select";
 import Pagination from "~/components/shared/Pagination";
-import { getPagedContacts, updateContactStatus, deleteContact } from "~/services/contact.service";
+import { deleteContact, getPagedContacts, replyContact, updateContactStatus } from "~/services/contact.service";
 import {
   ContactStatus,
   CONTACT_STATUS_LABEL,
@@ -31,6 +34,11 @@ export function meta() {
 
 const PAGE_SIZE = 10;
 
+function getReplySubject(subject: string) {
+  const trimmed = subject.trim();
+  return trimmed.toLowerCase().startsWith("re:") ? trimmed : `Re: ${trimmed}`;
+}
+
 function ContactDetailDrawer({
   contact,
   open,
@@ -42,6 +50,21 @@ function ContactDetailDrawer({
   onOpenChange: (v: boolean) => void;
   onStatusChange: (updated: ContactDto) => void;
 }) {
+  const [replyOpen, setReplyOpen] = React.useState(false);
+  const [replySubject, setReplySubject] = React.useState("");
+  const [replyBody, setReplyBody] = React.useState("");
+  const [replySubmitting, setReplySubmitting] = React.useState(false);
+  const [replyError, setReplyError] = React.useState<string | null>(null);
+  const [replySuccess, setReplySuccess] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!contact) return;
+    setReplySubject(getReplySubject(contact.subject));
+    setReplyBody("");
+    setReplyError(null);
+    setReplySuccess(null);
+  }, [contact]);
+
   async function markAs(status: ContactStatus) {
     if (!contact || contact.status === status) return;
     try {
@@ -51,6 +74,48 @@ function ContactDetailDrawer({
     } catch {
       toast.error("Cập nhật thất bại.");
     }
+  }
+
+  async function handleReplySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!contact || replySubmitting) return;
+
+    const subject = replySubject.trim();
+    const body = replyBody.trim();
+
+    if (!subject) {
+      setReplyError("Vui lòng nhập chủ đề phản hồi.");
+      return;
+    }
+
+    if (!body) {
+      setReplyError("Vui lòng nhập nội dung phản hồi.");
+      return;
+    }
+
+    setReplySubmitting(true);
+    setReplyError(null);
+    setReplySuccess(null);
+
+    try {
+      const updated = await replyContact(contact.id, { subject, body });
+      onStatusChange(updated);
+      setReplySuccess("Đã gửi email phản hồi.");
+      toast.success("Đã gửi email phản hồi.");
+    } catch (err) {
+      setReplyError(err instanceof ApiError ? err.message : "Gửi email phản hồi thất bại.");
+    } finally {
+      setReplySubmitting(false);
+    }
+  }
+
+  function openReplyDialog() {
+    if (!contact) return;
+    setReplySubject(getReplySubject(contact.subject));
+    setReplyBody("");
+    setReplyError(null);
+    setReplySuccess(null);
+    setReplyOpen(true);
   }
 
   if (!contact) return null;
@@ -109,6 +174,9 @@ function ContactDetailDrawer({
         </div>
 
         <div className="p-4 border-t flex flex-wrap gap-2">
+          <Button size="sm" onClick={openReplyDialog}>
+            Phản hồi qua email
+          </Button>
           {contact.status === ContactStatus.Unread && (
             <Button variant="outline" size="sm" onClick={() => markAs(ContactStatus.Read)}>
               Đánh dấu đã đọc
@@ -123,6 +191,56 @@ function ContactDetailDrawer({
             Đóng
           </Button>
         </div>
+
+        <Dialog open={replyOpen} onOpenChange={setReplyOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Phản hồi qua email</DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleReplySubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reply-to">Đến</Label>
+                <Input id="reply-to" value={contact.email} readOnly />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reply-subject">Chủ đề</Label>
+                <Input
+                  id="reply-subject"
+                  value={replySubject}
+                  onChange={(e) => setReplySubject(e.target.value)}
+                  maxLength={200}
+                  disabled={replySubmitting}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reply-body">Nội dung</Label>
+                <Textarea
+                  id="reply-body"
+                  value={replyBody}
+                  onChange={(e) => setReplyBody(e.target.value)}
+                  maxLength={10000}
+                  disabled={replySubmitting}
+                  className="min-h-40"
+                />
+              </div>
+
+              {replyError && <p className="text-sm text-destructive">{replyError}</p>}
+              {replySuccess && <p className="text-sm text-green-600 dark:text-green-400">{replySuccess}</p>}
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setReplyOpen(false)} disabled={replySubmitting}>
+                  Đóng
+                </Button>
+                <Button type="submit" disabled={replySubmitting}>
+                  {replySubmitting ? "Đang gửi..." : "Gửi phản hồi"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </DrawerContent>
     </Drawer>
   );
