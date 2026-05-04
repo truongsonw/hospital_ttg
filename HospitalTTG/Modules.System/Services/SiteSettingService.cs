@@ -67,6 +67,7 @@ public class SiteSettingService : ISiteSettingService
         "hotline" or "phone" or "email" or "address" or "working_hours" => "contact",
         "facebook" or "youtube" or "zalo" or "tiktok" => "social",
         "meta_title" or "meta_description" or "google_analytics_id" => "seo",
+        var homepage when homepage.StartsWith("homepage_", StringComparison.OrdinalIgnoreCase) => "homepage",
         _ => "general"
     };
 

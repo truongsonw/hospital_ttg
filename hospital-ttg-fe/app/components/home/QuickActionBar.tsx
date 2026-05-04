@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import BookingModal from "./BookingModal";
 import { Phone, Calendar, ClipboardList } from "lucide-react";
+import type { HomePageContactDto, HomePageQuickActionDto } from "~/types/home";
 
 interface ActionItem {
   icon: React.ReactNode;
@@ -10,29 +11,61 @@ interface ActionItem {
   isBooking?: boolean;
 }
 
-const actions: ActionItem[] = [
-  {
-    icon: <Phone className="w-6 h-6" />,
-    title: "Gọi tổng đài",
-    description: "Đặt lịch khám nhanh qua tổng đài 1900.888.866",
-    href: "tel:1900888866",
-  },
-  {
-    icon: <Calendar className="w-6 h-6" />,
-    title: "Đặt lịch khám",
-    description: "Đặt lịch khám online tại website",
-    isBooking: true,
-  },
-  {
-    icon: <ClipboardList className="w-6 h-6" />,
-    title: "Kết quả xét nghiệm",
-    description: "Tra cứu kết quả xét nghiệm của bạn",
-    href: "#ket-qua-xet-nghiem",
-  },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  phone: <Phone className="w-6 h-6" />,
+  calendar: <Calendar className="w-6 h-6" />,
+  "clipboard-list": <ClipboardList className="w-6 h-6" />,
+};
 
-const QuickActionBar = () => {
+interface QuickActionBarProps {
+  actions?: HomePageQuickActionDto[];
+  contact?: HomePageContactDto;
+}
+
+function normalizeActions(
+  actions: HomePageQuickActionDto[] | undefined,
+  contact: HomePageContactDto | undefined,
+): ActionItem[] {
+  const normalized = (actions ?? [])
+    .filter((action) => action.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((action) => ({
+      icon: iconMap[action.icon ?? ""] ?? <ClipboardList className="w-6 h-6" />,
+      title: action.title,
+      description: action.description ?? "",
+      href: action.url ?? undefined,
+      isBooking: action.kind === "booking",
+    }));
+
+  if (normalized.length > 0) return normalized;
+
+  const hotline = contact?.hotline || "1900.888.866";
+  const tel = hotline.replace(/\D/g, "");
+  return [
+    {
+      icon: <Phone className="w-6 h-6" />,
+      title: "Gọi tổng đài",
+      description: `Đặt lịch khám nhanh qua tổng đài ${hotline}`,
+      href: tel ? `tel:${tel}` : undefined,
+    },
+    {
+      icon: <Calendar className="w-6 h-6" />,
+      title: "Đặt lịch khám",
+      description: "Đặt lịch khám online tại website",
+      isBooking: true,
+    },
+    {
+      icon: <ClipboardList className="w-6 h-6" />,
+      title: "Kết quả xét nghiệm",
+      description: "Tra cứu kết quả xét nghiệm của bạn",
+      href: "#ket-qua-xet-nghiem",
+    },
+  ];
+}
+
+const QuickActionBar = ({ actions: inputActions, contact }: QuickActionBarProps) => {
   const [open, setOpen] = useState(false);
+  const actions = normalizeActions(inputActions, contact);
 
   return (
     <>

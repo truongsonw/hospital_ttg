@@ -23,8 +23,11 @@ export default [
     ...prefix("dashboard", [
       index("routes/_dashboard/index.tsx"), // Route: /dashboard
       route("settings", "routes/_dashboard/settings.tsx"), // Route: /dashboard/settings
+      route("settings/account", "routes/_dashboard/settings.account.tsx"), // Route: /dashboard/settings/account
+      route("settings/website", "routes/_dashboard/settings.website.tsx"), // Route: /dashboard/settings/website
       ...prefix("system", [
         route("menus", "routes/_dashboard/system.menus.tsx"), // Route: /dashboard/system/menus
+        route("public-menus", "routes/_dashboard/system.public-menus.tsx"), // Route: /dashboard/system/public-menus
         route("categories", "routes/_dashboard/system.categories.tsx"), // Route: /dashboard/system/categories
       ]),
       ...prefix("article", [

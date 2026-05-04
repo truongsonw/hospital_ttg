@@ -1,4 +1,5 @@
 using Contracts.System.DTOs;
+using Contracts.System.Enums;
 using Contracts.System.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,9 +24,19 @@ public class SysMenuController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetAllMenus(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetAllMenus([FromQuery] MenuType? type, CancellationToken ct)
     {
-        var result = await _sysMenuService.GetAllMenusAsync(ct);
+        var result = await _sysMenuService.GetAllMenusAsync(type, ct);
+        return Ok(new ApiResponse<IReadOnlyList<MenuDto>>(result));
+    }
+
+    [HttpGet("public")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetPublicMenus(CancellationToken ct)
+    {
+        var result = await _sysMenuService.GetPublicMenusAsync(ct);
         return Ok(new ApiResponse<IReadOnlyList<MenuDto>>(result));
     }
 

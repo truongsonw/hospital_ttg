@@ -1,3 +1,4 @@
+using Contracts.System.Enums;
 using Microsoft.EntityFrameworkCore;
 using Modules.System.Entities;
 using Shared.Infrastructure.Data;
@@ -21,6 +22,14 @@ public class MenuRepository : IMenuRepository
     public async Task<IReadOnlyList<Menu>> GetAllAsync(CancellationToken ct = default)
     {
         return await _dbSet.OrderBy(m => m.SortOrder).ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<Menu>> GetByTypeAsync(MenuType type, CancellationToken ct = default)
+    {
+        return await _dbSet
+            .Where(m => m.Type == type)
+            .OrderBy(m => m.SortOrder)
+            .ToListAsync(ct);
     }
 
     public async Task<IReadOnlyList<Menu>> GetByParentIdAsync(Guid? parentId, CancellationToken ct = default)

@@ -1,10 +1,12 @@
 using Contracts.System.DTOs;
+using Contracts.System.Enums;
 
 namespace Contracts.System.Interfaces;
 
 public interface ISysMenuService
 {
-    Task<IReadOnlyList<MenuDto>> GetAllMenusAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<MenuDto>> GetAllMenusAsync(MenuType? type, CancellationToken ct = default);
+    Task<IReadOnlyList<MenuDto>> GetPublicMenusAsync(CancellationToken ct = default);
     Task<MenuDto> GetMenuByIdAsync(Guid id, CancellationToken ct = default);
     Task<MenuDto> CreateMenuAsync(CreateMenuRequest request, CancellationToken ct = default);
     Task<MenuDto> UpdateMenuAsync(Guid id, UpdateMenuRequest request, CancellationToken ct = default);

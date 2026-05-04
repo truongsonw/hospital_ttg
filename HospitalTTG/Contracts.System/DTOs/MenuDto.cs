@@ -1,3 +1,5 @@
+using Contracts.System.Enums;
+
 namespace Contracts.System.DTOs;
 
 public class MenuDto
@@ -9,5 +11,6 @@ public class MenuDto
     public string? Icon { get; set; }
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
+    public MenuType Type { get; set; }
     public List<MenuDto> Children { get; set; } = [];
 }

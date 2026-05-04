@@ -1,3 +1,8 @@
+export enum MenuType {
+  Admin = 0,
+  Public = 1,
+}
+
 export interface MenuDto {
   id: string;
   parentId?: string | null;
@@ -6,6 +11,7 @@ export interface MenuDto {
   icon?: string | null;
   sortOrder: number;
   isActive: boolean;
+  type: MenuType;
   children: MenuDto[];
 }
 
@@ -16,6 +22,7 @@ export interface CreateMenuRequest {
   icon?: string | null;
   sortOrder: number;
   isActive: boolean;
+  type: MenuType;
 }
 
 export interface UpdateMenuRequest {
@@ -31,6 +38,13 @@ export interface UpdateMenuRequest {
 export interface AssignRoleMenuRequest {
   roleId: string;
   menuIds: string[];
+}
+
+export interface RoleDto {
+  id: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
 }
 
 export interface RoleMenuDto {
@@ -94,4 +108,41 @@ export interface SiteSettingItem {
 
 export interface UpdateSiteSettingsRequest {
   settings: SiteSettingItem[];
+}
+
+export interface DashboardContentStatsDto {
+  total: number;
+  published: number;
+  draft: number;
+  hot: number;
+  newLast7Days: number;
+}
+
+export interface DashboardBookingStatsDto {
+  total: number;
+  pending: number;
+  confirmed: number;
+  newLast7Days: number;
+}
+
+export interface DashboardContactStatsDto {
+  total: number;
+  unread: number;
+  replied: number;
+  newLast7Days: number;
+}
+
+export interface DashboardDoctorStatsDto {
+  total: number;
+  active: number;
+  management: number;
+  newLast7Days: number;
+}
+
+export interface DashboardStatsDto {
+  contents: DashboardContentStatsDto;
+  bookings: DashboardBookingStatsDto;
+  contacts: DashboardContactStatsDto;
+  doctors: DashboardDoctorStatsDto;
+  generatedAtUtc: string;
 }

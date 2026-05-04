@@ -1,10 +1,10 @@
 "use client"
 
 import {
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from "@tabler/icons-react"
+  MoreVertical,
+  LogOut,
+  User,
+} from "lucide-react"
 import { useNavigate } from "react-router"
 import { Avatar, AvatarFallback } from "~/components/ui/avatar"
 import {
@@ -68,7 +68,7 @@ export function NavUser() {
                 {user.email}
               </span>
             </div>
-            <IconDotsVertical className="ml-auto size-4" />
+            <MoreVertical className="ml-auto size-4" />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
@@ -97,14 +97,14 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <IconUserCircle />
+                <User />
                 {user.role}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={handleLogout}>
-                <IconLogout />
+                <LogOut />
                 Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuGroup>

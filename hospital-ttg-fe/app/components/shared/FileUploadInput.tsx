@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IconUpload, IconX, IconPhoto, IconFile } from '@tabler/icons-react';
+import { Trash2, Mail, Upload, X, Image, File } from "lucide-react";
 import { Button } from '~/components/ui/button';
 import { uploadFile, getFileDownloadUrl } from '~/services/storage.service';
 import { ApiError } from '~/lib/api';
@@ -71,7 +71,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
             />
           ) : (
             <div className="flex h-14 w-20 items-center justify-center rounded-md border bg-muted shrink-0">
-              <IconFile className="size-6 text-muted-foreground" />
+              <File className="size-6 text-muted-foreground" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -85,7 +85,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
                 disabled={uploading}
                 onClick={() => inputRef.current?.click()}
               >
-                <IconUpload className="size-3 mr-1" />
+                <Upload className="size-3 mr-1" />
                 {uploading ? 'Đang tải...' : 'Thay đổi'}
               </Button>
               <Button
@@ -96,7 +96,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
                 onClick={handleClear}
                 disabled={uploading}
               >
-                <IconX className="size-3 mr-1" />
+                <X className="size-3 mr-1" />
                 Xóa
               </Button>
             </div>
@@ -111,7 +111,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
         >
-          <IconPhoto className="size-4 text-muted-foreground" />
+          <Image className="size-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
             {uploading ? 'Đang tải lên...' : `Chọn ${label ?? 'file'}`}
           </span>

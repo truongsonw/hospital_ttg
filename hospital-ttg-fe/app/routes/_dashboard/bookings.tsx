@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconTrash, IconChevronDown } from "@tabler/icons-react";
+import { Trash2, ChevronDown } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -256,7 +256,7 @@ export default function BookingsPage() {
                             <DropdownMenuTrigger
                               render={
                                 <Button variant="outline" size="sm">
-                                  Cập nhật <IconChevronDown className="ml-1 h-3 w-3" />
+                                  Cập nhật <ChevronDown className="ml-1 h-3 w-3" />
                                 </Button>
                               }
                             />
@@ -278,7 +278,7 @@ export default function BookingsPage() {
                           className="text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(b.id)}
                         >
-                          <IconTrash className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

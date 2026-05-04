@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useSiteSettings } from "~/context/site-settings.context";
+import { usePublicMenus } from "~/context/public-menus.context";
+import type { MenuDto } from "~/types/system";
 
-const menuItems = [
+type HeaderMenuItem = {
+  title: string;
+  href?: string;
+  children?: { title: string; href: string }[];
+};
+
+const fallbackMenuItems: HeaderMenuItem[] = [
   { title: "Trang chủ", href: "/" },
   {
     title: "Giới thiệu",
-    children: [
-      { title: "Giới thiệu chung", href: "/about" },
-    ],
+    children: [{ title: "Giới thiệu chung", href: "/about" }],
   },
   {
     title: "Đội ngũ bác sĩ",
@@ -21,17 +27,31 @@ const menuItems = [
   {
     title: "Tin tức",
     href: "/tin-tuc",
-    children: [
-      { title: "Tất cả tin tức", href: "/tin-tuc" },
-    ],
+    children: [{ title: "Tất cả tin tức", href: "/tin-tuc" }],
   },
   { title: "Liên hệ", href: "/contact" },
 ];
+
+function toHeaderItems(nodes: MenuDto[]): HeaderMenuItem[] {
+  return nodes.map((n) => ({
+    title: n.title,
+    href: n.url ?? undefined,
+    children: n.children?.length
+      ? n.children.map((c) => ({ title: c.title, href: c.url ?? "#" }))
+      : undefined,
+  }));
+}
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
   const [openSub, setOpenSub] = useState<number | null>(null);
   const s = useSiteSettings();
+  const publicMenus = usePublicMenus();
+
+  const menuItems = useMemo<HeaderMenuItem[]>(
+    () => (publicMenus.length > 0 ? toHeaderItems(publicMenus) : fallbackMenuItems),
+    [publicMenus],
+  );
 
   const hotline = s["hotline"] || "0966101616";
   const logoUrl = s["logo_url"] || "/images/logo/logo.jpg";

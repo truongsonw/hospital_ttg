@@ -1,15 +1,28 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
+import type { DepartmentDto } from "~/types/doctor";
 
-const specialties = [
-  "Khoa Khám bệnh",
-  "Khoa Nội tổng hợp",
-  "Khoa Ngoại tổng hợp",
-  "Khoa Phụ sản",
-  "Khoa Nhi",
+const fallbackSpecialties = [
+  { id: "khoa-kham-benh", name: "Khoa Khám bệnh" },
+  { id: "khoa-noi-tong-hop", name: "Khoa Nội tổng hợp" },
+  { id: "khoa-ngoai-tong-hop", name: "Khoa Ngoại tổng hợp" },
+  { id: "khoa-phu-san", name: "Khoa Phụ sản" },
+  { id: "khoa-nhi", name: "Khoa Nhi" },
 ];
 
-export default function SpecialtySection() {
+interface SpecialtySectionProps {
+  departments?: DepartmentDto[];
+}
+
+export default function SpecialtySection({ departments = [] }: SpecialtySectionProps) {
+  const specialties = departments.length > 0
+    ? departments
+        .filter((department) => department.isActive)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .slice(0, 5)
+        .map((department) => ({ id: department.id, name: department.name }))
+    : fallbackSpecialties;
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       {/* LEFT */}
@@ -23,12 +36,12 @@ export default function SpecialtySection() {
         </p>
 
         <ul className="space-y-4">
-          {specialties.map((item, index) => (
+          {specialties.map((item) => (
             <li
-              key={index}
+              key={item.id}
               className="flex justify-between items-center border-b border-gray-200 pb-3 group cursor-pointer">
               <span className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-green-600 transition">
-                {item}
+                {item.name}
               </span>
               <span className="text-xl text-gray-400 group-hover:text-green-600 transition">
                 <ArrowRight className="w-6 h-6" />

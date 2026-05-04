@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import type { Route } from "./+types/system.categories";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -231,7 +231,7 @@ export default function SystemCategoriesPage() {
           <p className="text-sm text-gray-500 mt-1">Quản lý các danh mục dùng chung trong hệ thống</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
-          <IconPlus className="size-4 mr-1" /> Thêm danh mục
+          <Plus className="size-4 mr-1" /> Thêm danh mục
         </Button>
       </div>
 
@@ -267,10 +267,10 @@ export default function SystemCategoriesPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button size="icon" variant="ghost" onClick={() => setEditTarget(cat)}>
-                        <IconEdit className="size-4" />
+                        <Edit className="size-4" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => setDeleteTarget(cat)}>
-                        <IconTrash className="size-4 text-destructive" />
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </div>
                   </TableCell>

@@ -28,7 +28,11 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(m => m.UpdatedBy)
             .HasMaxLength(100);
 
+        builder.Property(m => m.Type)
+            .HasConversion<int>();
+
         builder.HasIndex(m => m.ParentId);
         builder.HasIndex(m => m.SortOrder);
+        builder.HasIndex(m => m.Type);
     }
 }

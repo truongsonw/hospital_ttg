@@ -1,9 +1,13 @@
+import { useLoaderData } from "react-router";
 import type { Route } from "./+types/index";
 import Carousel from "../../components/home/Carousel";
 import QuickActionBar from "../../components/home/QuickActionBar";
 import SpecialtySection from "../../components/home/SpecialtySection";
 import FeaturedServices from "../../components/home/FeaturedServices";
 import DoctorSection from "../../components/home/DoctorSection";
+import { getHomePage } from "~/services/homepage.service";
+import type { HomePageDto, HomePageSectionDto } from "~/types/home";
+import type { ContentDto } from "~/types/article";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,86 +16,94 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export default function MainIndex() {
-  const featuredServicesData = {
+const emptyHomePage: HomePageDto = {
+  heroSlides: [],
+  quickActions: [],
+  departments: [],
+  featuredServicesSection: {
     subtitle: "ĐƠN VỊ",
     title: "Dịch vụ y khoa",
     description: "Chăm sóc sức khỏe toàn diện cho gia đình bạn",
     buttonText: "Xem tất cả",
-    services: [
-      {
-        title: "Dịch vụ tư vấn tâm lý",
-        image: "/images/doctor/doctor5.jpg",
-      },
-      {
-        title: "Chụp X-Quang",
-        image: "/images/doctor/doctor6.jpg",
-      },
-    ],
-  };
-
-  const featuredNewsData = {
+    buttonUrl: "/tin-tuc?type=service",
+  },
+  featuredServices: [],
+  featuredNewsSection: {
     subtitle: "TIN TỨC",
     title: "Tin tức nổi bật",
-    description:
-      "Cập nhật thông tin y tế và hoạt động mới nhất của bệnh viện",
+    description: "Cập nhật thông tin y tế và hoạt động mới nhất của bệnh viện",
     buttonText: "Xem tất cả",
-    services: [
-      {
-        title:
-          "Bệnh viện triển khai kỹ thuật mới trong điều trị tim mạch",
-        slug: "ky-thuat-moi-dieu-tri-tim-mach",
-        image: "/images/doctor/doctor3.jpg",
-        excerpt:
-          "Kỹ thuật can thiệp tim mạch hiện đại giúp nâng cao hiệu quả điều trị và rút ngắn thời gian hồi phục cho bệnh nhân.",
-        date: "2026-02-10",
-        category: "Y tế",
-      },
-      {
-        title: "Khám sức khỏe tổng quát định kỳ – Vì sao cần thiết?",
-        slug: "kham-suc-khoe-tong-quat",
-        image: "/images/doctor/doctor3.jpg",
-        excerpt:
-          "Khám sức khỏe định kỳ giúp phát hiện sớm bệnh lý và bảo vệ sức khỏe lâu dài cho bạn và gia đình.",
-        date: "2026-02-08",
-        category: "Sức khỏe",
-      },
-      {
-        title: "Ứng dụng công nghệ AI trong chẩn đoán hình ảnh",
-        slug: "ai-trong-chan-doan-hinh-anh",
-        image: "/images/doctor/doctor3.jpg",
-        excerpt:
-          "Công nghệ AI đang được bệnh viện ứng dụng nhằm nâng cao độ chính xác trong chẩn đoán bệnh.",
-        date: "2026-02-06",
-        category: "Công nghệ",
-      },
-      {
-        title: "Chương trình khám miễn phí cho người cao tuổi",
-        slug: "kham-mien-phi-nguoi-cao-tuoi",
-        image: "/images/doctor/doctor3.jpg",
-        excerpt:
-          "Bệnh viện tổ chức chương trình khám sức khỏe miễn phí dành cho người cao tuổi trên địa bàn.",
-        date: "2026-02-05",
-        category: "Hoạt động",
-      },
-    ],
+    buttonUrl: "/tin-tuc",
+  },
+  featuredNews: [],
+  featuredDoctors: [],
+  contact: {},
+};
+
+export async function clientLoader() {
+  try {
+    return await getHomePage();
+  } catch {
+    return emptyHomePage;
+  }
+}
+
+export function HydrateFallback() {
+  return (
+    <div className="home">
+      <div className="h-[200px] w-full animate-pulse bg-green-50 sm:h-[300px] md:h-[420px] lg:h-[520px]" />
+      <div className="mx-auto mt-8 max-w-7xl px-6 py-12 text-center text-sm text-gray-500">
+        Đang tải dữ liệu trang chủ...
+      </div>
+    </div>
+  );
+}
+
+function mapSection(section: HomePageSectionDto, services: ContentDto[], emptyText: string) {
+  return {
+    subtitle: section.subtitle ?? undefined,
+    title: section.title ?? undefined,
+    description: section.description ?? undefined,
+    buttonText: section.buttonText ?? undefined,
+    buttonHref: section.buttonUrl ?? undefined,
+    emptyText,
+    services: services.map((item) => ({
+      title: item.title,
+      image: item.thumbnail,
+      href: item.slug ? `/tin-tuc/${item.slug}` : undefined,
+      excerpt: item.intro,
+      date: item.publishedAt,
+    })),
   };
+}
+
+export default function MainIndex() {
+  const homePage = useLoaderData<typeof clientLoader>();
+  const featuredServicesData = mapSection(
+    homePage.featuredServicesSection,
+    homePage.featuredServices,
+    "Chưa có dịch vụ y khoa nổi bật.",
+  );
+  const featuredNewsData = mapSection(
+    homePage.featuredNewsSection,
+    homePage.featuredNews,
+    "Chưa có tin tức nổi bật.",
+  );
 
   return (
     <div className="home">
       <section className="relative">
         <section className="relative">
-          <Carousel />
-          <QuickActionBar />
+          <Carousel slides={homePage.heroSlides} />
+          <QuickActionBar actions={homePage.quickActions} contact={homePage.contact} />
         </section>
         <div className="p-4">
-          <SpecialtySection />
+          <SpecialtySection departments={homePage.departments} />
           <FeaturedServices data={featuredServicesData} />
           <FeaturedServices data={featuredNewsData} />
-          <DoctorSection />
+          <DoctorSection doctors={homePage.featuredDoctors} />
         </div>
       </section>
     </div>
   );
 }
-

@@ -1,4 +1,5 @@
 using Contracts.System.DTOs;
+using Contracts.System.Enums;
 using Contracts.System.Interfaces;
 using Modules.System.Entities;
 using Modules.System.Repositories;
@@ -20,10 +21,19 @@ public class SysMenuService : ISysMenuService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IReadOnlyList<MenuDto>> GetAllMenusAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<MenuDto>> GetAllMenusAsync(MenuType? type, CancellationToken ct = default)
     {
-        var menus = await _menuRepository.GetAllAsync(ct);
+        var menus = type.HasValue
+            ? await _menuRepository.GetByTypeAsync(type.Value, ct)
+            : await _menuRepository.GetAllAsync(ct);
         return BuildMenuTree(menus, null);
+    }
+
+    public async Task<IReadOnlyList<MenuDto>> GetPublicMenusAsync(CancellationToken ct = default)
+    {
+        var menus = await _menuRepository.GetByTypeAsync(MenuType.Public, ct);
+        var active = menus.Where(m => m.IsActive).ToList();
+        return BuildMenuTree(active, null);
     }
 
     public async Task<MenuDto> GetMenuByIdAsync(Guid id, CancellationToken ct = default)
@@ -38,8 +48,12 @@ public class SysMenuService : ISysMenuService
     {
         if (request.ParentId.HasValue)
         {
-            _ = await _menuRepository.GetByIdAsync(request.ParentId.Value, ct)
+            var parent = await _menuRepository.GetByIdAsync(request.ParentId.Value, ct)
                 ?? throw new NotFoundException("ParentMenu", request.ParentId.Value.ToString());
+
+            if (parent.Type != request.Type)
+                throw new ValidationException(
+                    new Dictionary<string, string[]> { { "ParentId", ["Parent menu must have the same type."] } });
         }
 
         var menu = new Menu
@@ -50,6 +64,7 @@ public class SysMenuService : ISysMenuService
             Icon = request.Icon,
             SortOrder = request.SortOrder,
             IsActive = request.IsActive,
+            Type = request.Type,
         };
 
         await _menuRepository.AddAsync(menu, ct);
@@ -69,8 +84,12 @@ public class SysMenuService : ISysMenuService
 
         if (request.ParentMenuId.HasValue)
         {
-            _ = await _menuRepository.GetByIdAsync(request.ParentMenuId.Value, ct)
+            var parent = await _menuRepository.GetByIdAsync(request.ParentMenuId.Value, ct)
                 ?? throw new NotFoundException("ParentMenu", request.ParentMenuId.Value.ToString());
+
+            if (parent.Type != menu.Type)
+                throw new ValidationException(
+                    new Dictionary<string, string[]> { { "ParentMenuId", ["Parent menu must have the same type."] } });
         }
 
         menu.ParentId = request.ParentMenuId;
@@ -109,7 +128,7 @@ public class SysMenuService : ISysMenuService
             .Select(rm => rm.MenuId)
             .ToHashSet();
 
-        var allMenus = await _menuRepository.GetAllAsync(ct);
+        var allMenus = await _menuRepository.GetByTypeAsync(MenuType.Admin, ct);
         var menuDict = allMenus.ToDictionary(m => m.Id);
 
         var includedIds = new HashSet<Guid>(assignedMenuIds);
@@ -163,6 +182,7 @@ public class SysMenuService : ISysMenuService
                 Icon = m.Icon,
                 SortOrder = m.SortOrder,
                 IsActive = m.IsActive,
+                Type = m.Type,
                 Children = BuildMenuTree(menus, m.Id)
             })
             .ToList();
@@ -179,6 +199,7 @@ public class SysMenuService : ISysMenuService
             Icon = menu.Icon,
             SortOrder = menu.SortOrder,
             IsActive = menu.IsActive,
+            Type = menu.Type,
         };
     }
 }

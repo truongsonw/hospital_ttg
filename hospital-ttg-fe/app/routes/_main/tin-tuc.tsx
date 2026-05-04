@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, useSearchParams } from "react-router";
-import { IconFlame, IconEye, IconCalendar, IconChevronRight } from "@tabler/icons-react";
+import { Flame, Eye, Calendar, ChevronRight } from "lucide-react";
 import { getAllCategoriesList } from "~/services/category.service";
 import { getPagedContents } from "~/services/content.service";
 import type { CategoryDto, ContentDto, PagedApiResponse } from "~/types/article";
@@ -17,6 +17,7 @@ const TYPE_TABS = [
   { value: "article", label: "Bài viết" },
   { value: "album", label: "Album ảnh" },
   { value: "video", label: "Video" },
+  { value: "service", label: "Dịch vụ y khoa" },
 ];
 
 function formatDate(d: string | null) {
@@ -45,7 +46,7 @@ function ArticleCard({ item, categoryName }: { item: ContentDto; categoryName: s
         )}
         {item.isHot && (
           <span className="absolute top-2 left-2 flex items-center gap-1 bg-orange-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-            <IconFlame className="size-3" /> Nổi bật
+            <Flame className="size-3" /> Nổi bật
           </span>
         )}
       </div>
@@ -65,11 +66,11 @@ function ArticleCard({ item, categoryName }: { item: ContentDto; categoryName: s
         )}
         <div className="flex items-center gap-3 text-xs text-gray-400 mt-auto pt-2 border-t border-gray-100">
           <span className="flex items-center gap-1">
-            <IconCalendar className="size-3" />
+            <Calendar className="size-3" />
             {formatDate(item.publishedAt)}
           </span>
           <span className="flex items-center gap-1">
-            <IconEye className="size-3" />
+            <Eye className="size-3" />
             {item.viewCount.toLocaleString("vi-VN")}
           </span>
         </div>
@@ -173,7 +174,7 @@ export default function TinTucPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center gap-2 text-green-200 text-sm mb-3">
             <Link to="/" className="hover:text-white transition">Trang chủ</Link>
-            <IconChevronRight className="size-3.5" />
+            <ChevronRight className="size-3.5" />
             <span className="text-white">Tin tức</span>
           </nav>
           <h1 className="text-3xl font-bold text-white">Tin tức &amp; Bài viết</h1>
@@ -201,7 +202,7 @@ export default function TinTucPage() {
                       }`}
                     >
                       {tab.label}
-                      {type === tab.value && <IconChevronRight className="size-3.5 text-[#008046]" />}
+                      {type === tab.value && <ChevronRight className="size-3.5 text-[#008046]" />}
                     </button>
                   </li>
                 ))}
@@ -221,7 +222,7 @@ export default function TinTucPage() {
                       }`}
                     >
                       Tất cả danh mục
-                      {!categoryId && <IconChevronRight className="size-3.5 text-[#008046]" />}
+                      {!categoryId && <ChevronRight className="size-3.5 text-[#008046]" />}
                     </button>
                   </li>
                   {categories.map((cat) => (
@@ -235,7 +236,7 @@ export default function TinTucPage() {
                         }`}
                       >
                         {cat.name}
-                        {categoryId === cat.id && <IconChevronRight className="size-3.5 text-[#008046]" />}
+                        {categoryId === cat.id && <ChevronRight className="size-3.5 text-[#008046]" />}
                       </button>
                     </li>
                   ))}

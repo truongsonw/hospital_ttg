@@ -1,8 +1,20 @@
 import { apiFetch } from '~/lib/api';
-import type { AssignRoleMenuRequest, CreateMenuRequest, MenuDto, UpdateMenuRequest } from '~/types/system';
+import type {
+  AssignRoleMenuRequest,
+  CreateMenuRequest,
+  MenuDto,
+  MenuType,
+  UpdateMenuRequest,
+} from '~/types/system';
 
-export async function getAllMenus(): Promise<MenuDto[]> {
-  const res = await apiFetch<MenuDto[]>('/api/sysmenu');
+export async function getAllMenus(type?: MenuType): Promise<MenuDto[]> {
+  const qs = type !== undefined ? `?type=${type}` : '';
+  const res = await apiFetch<MenuDto[]>(`/api/sysmenu${qs}`);
+  return res.data;
+}
+
+export async function getPublicMenus(): Promise<MenuDto[]> {
+  const res = await apiFetch<MenuDto[]>('/api/sysmenu/public');
   return res.data;
 }
 

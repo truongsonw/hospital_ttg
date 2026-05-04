@@ -3,29 +3,30 @@
 
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconBook,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
-  IconUsers,
-  IconMenu2,
-  IconCategory,
-  IconCategory2,
-  IconNews,
-  IconCalendar,
-  IconMail,
-  IconStethoscope,
-  IconBuildingHospital,
-} from "@tabler/icons-react"
+  Camera,
+  BarChart3,
+  LayoutDashboard,
+  Sparkles,
+  FileText,
+  Folder,
+  HelpCircle,
+  BookOpen,
+  List,
+  FileBarChart,
+  Search,
+  Settings,
+  Users,
+  Menu,
+  LayoutGrid,
+  Grid3X3,
+  Newspaper,
+  Calendar,
+  Mail,
+  Stethoscope,
+  Building2,
+  User,
+  Globe,
+} from "lucide-react"
 import { Link } from "react-router"
 
 import { NavMain } from "~/components/nav-main"
@@ -54,77 +55,87 @@ const data = {
     {
       title: "Bảng điều khiển",
       url: "/dashboard",
-      icon: IconDashboard,
+      icon: LayoutDashboard,
     },
     {
       title: "Báo cáo thống kê",
       url: "#",
-      icon: IconChartBar,
+      icon: BarChart3,
     },
   ],
   navSystem: [
     {
-      title: "Quản lý Menu",
+      title: "Menu hệ thống",
       url: "/dashboard/system/menus",
-      icon: IconMenu2,
+      icon: Menu,
+    },
+    {
+      title: "Menu trang chủ",
+      url: "/dashboard/system/public-menus",
+      icon: Globe,
     },
     {
       title: "Danh mục hệ thống",
       url: "/dashboard/system/categories",
-      icon: IconCategory,
+      icon: LayoutGrid,
     },
   ],
   navArticle: [
     {
       title: "Danh mục nội dung",
       url: "/dashboard/article/categories",
-      icon: IconCategory2,
+      icon: Grid3X3,
     },
     {
       title: "Quản lý nội dung",
       url: "/dashboard/article/contents",
-      icon: IconNews,
+      icon: Newspaper,
     },
   ],
   navReception: [
     {
       title: "Đặt lịch khám",
       url: "/dashboard/bookings",
-      icon: IconCalendar,
+      icon: Calendar,
     },
     {
       title: "Liên hệ",
       url: "/dashboard/contacts",
-      icon: IconMail,
+      icon: Mail,
     },
   ],
   navDoctors: [
     {
       title: "Quản lý bác sĩ",
       url: "/dashboard/doctors",
-      icon: IconStethoscope,
+      icon: Stethoscope,
     },
     {
       title: "Quản lý khoa",
       url: "/dashboard/doctors/departments",
-      icon: IconBuildingHospital,
+      icon: Building2,
     },
   ],
   navSecondary: [
     {
-      title: "Cài đặt",
-      url: "/dashboard/settings",
-      icon: IconSettings,
+      title: "Tài khoản",
+      url: "/dashboard/settings/account",
+      icon: User,
+    },
+    {
+      title: "Thông tin website",
+      url: "/dashboard/settings/website",
+      icon: Globe,
     },
     {
       title: "Hỗ trợ",
       url: "#",
-      icon: IconHelp,
+      icon: HelpCircle,
     },
     {
       title: "Tìm kiếm",
       url: "#",
-      icon: IconSearch,
+      icon: Search,
     },
   ],
 }
@@ -135,8 +146,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5" render={<a href="/dashboard" />}>
-              <IconBook className="!size-5" />
+            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5" render={<Link to="/dashboard" />}>
+              <BookOpen className="!size-5" />
               <span className="text-base font-semibold">Hospital TTG</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -221,4 +232,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
-

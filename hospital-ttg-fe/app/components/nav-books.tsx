@@ -2,12 +2,13 @@
 "use client"
 
 import {
-  IconDots,
-  IconFolder,
-  IconShare3,
-  IconTrash,
+  MoreHorizontal,
+  Folder,
+  Share,
+  Trash2,
   type Icon,
-} from "@tabler/icons-react"
+} from "lucide-react"
+import { Link } from "react-router"
 
 import {
   DropdownMenu,
@@ -43,9 +44,11 @@ export function NavBooks({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton render={<a href={item.url} />}>
-                <item.icon />
-                <span>{item.name}</span>
+            <SidebarMenuButton
+              render={item.url.startsWith("/") ? <Link to={item.url} /> : <a href={item.url} />}
+            >
+              <item.icon />
+              <span>{item.name}</span>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger render={
@@ -54,7 +57,7 @@ export function NavBooks({
                   className="data-[state=open]:bg-accent rounded-sm"
                 />
               }>
-                  <IconDots />
+                  <MoreHorizontal />
                   <span className="sr-only">More</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -63,16 +66,16 @@ export function NavBooks({
                 align={isMobile ? "end" : "start"}
               >
                 <DropdownMenuItem>
-                  <IconFolder />
+                  <Folder />
                   <span>Open</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <IconShare3 />
+                  <Share />
                   <span>Share</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">
-                  <IconTrash />
+                  <Trash2 />
                   <span>Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -81,7 +84,7 @@ export function NavBooks({
         ))}
         {/* <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
-            <IconDots className="text-sidebar-foreground/70" />
+            <MoreHorizontal className="text-sidebar-foreground/70" />
             <span>More</span>
           </SidebarMenuButton>
         </SidebarMenuItem> */}
@@ -89,6 +92,4 @@ export function NavBooks({
     </SidebarGroup>
   )
 }
-
-
 

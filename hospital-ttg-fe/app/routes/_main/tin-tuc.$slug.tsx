@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, useParams } from "react-router";
-import { IconCalendar, IconEye, IconTag, IconChevronRight, IconFlame } from "@tabler/icons-react";
+import { Calendar, Eye, Tag, ChevronRight, Flame } from "lucide-react";
 import { getContentBySlug, getPagedContents, incrementViewCount } from "~/services/content.service";
 import { getAllCategoriesList } from "~/services/category.service";
 import type { CategoryDto, ContentDto } from "~/types/article";
@@ -134,9 +134,9 @@ export default function TinTucDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center gap-2 text-green-200 text-sm flex-wrap">
             <Link to="/" className="hover:text-white transition">Trang chủ</Link>
-            <IconChevronRight className="size-3.5 shrink-0" />
+            <ChevronRight className="size-3.5 shrink-0" />
             <Link to="/tin-tuc" className="hover:text-white transition">Tin tức</Link>
-            <IconChevronRight className="size-3.5 shrink-0" />
+            <ChevronRight className="size-3.5 shrink-0" />
             <span className="text-white line-clamp-1">{content.title}</span>
           </nav>
         </div>
@@ -159,7 +159,7 @@ export default function TinTucDetailPage() {
               </span>
               {content.isHot && (
                 <span className="flex items-center gap-1 text-xs font-semibold text-orange-500 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full">
-                  <IconFlame className="size-3" /> Nổi bật
+                  <Flame className="size-3" /> Nổi bật
                 </span>
               )}
             </div>
@@ -173,12 +173,12 @@ export default function TinTucDetailPage() {
             <div className="flex items-center gap-4 text-sm text-gray-400 mb-6 flex-wrap">
               {content.publishedAt && (
                 <span className="flex items-center gap-1.5">
-                  <IconCalendar className="size-4" />
+                  <Calendar className="size-4" />
                   {formatDate(content.publishedAt)}
                 </span>
               )}
               <span className="flex items-center gap-1.5">
-                <IconEye className="size-4" />
+                <Eye className="size-4" />
                 {content.viewCount.toLocaleString("vi-VN")} lượt xem
               </span>
             </div>
@@ -201,7 +201,7 @@ export default function TinTucDetailPage() {
             {/* Tags */}
             {tags.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap mt-8 pt-6 border-t border-gray-200">
-                <IconTag className="size-4 text-gray-400" />
+                <Tag className="size-4 text-gray-400" />
                 {tags.map((tag) => (
                   <Link
                     key={tag}

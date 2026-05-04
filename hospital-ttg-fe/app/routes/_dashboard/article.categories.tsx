@@ -3,14 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
 import {
   Drawer,
-  DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
@@ -45,7 +44,7 @@ export function meta() {
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
-const TYPE_OPTIONS = ["article", "album", "video"] as const;
+const TYPE_OPTIONS = ["article", "album", "video", "service"] as const;
 
 const schema = z.object({
   name: z.string().min(1, "Bắt buộc").max(255),
@@ -128,6 +127,7 @@ function CategoryForm({
             <option value="article">Bài viết</option>
             <option value="album">Album ảnh</option>
             <option value="video">Video</option>
+            <option value="service">Dịch vụ y khoa</option>
           </select>
         </div>
         <div className="space-y-1.5">
@@ -168,6 +168,7 @@ const TYPE_LABELS: Record<string, string> = {
   article: "Bài viết",
   album: "Album ảnh",
   video: "Video",
+  service: "Dịch vụ y khoa",
 };
 
 export default function ArticleCategoriesPage() {
@@ -252,7 +253,7 @@ export default function ArticleCategoriesPage() {
           <p className="text-sm text-gray-500 mt-1">Quản lý danh mục cho bài viết, album và video</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
-          <IconPlus className="size-4 mr-1" /> Thêm danh mục
+          <Plus className="size-4 mr-1" /> Thêm danh mục
         </Button>
       </div>
 
@@ -267,6 +268,7 @@ export default function ArticleCategoriesPage() {
           <option value="article">Bài viết</option>
           <option value="album">Album ảnh</option>
           <option value="video">Video</option>
+          <option value="service">Dịch vụ y khoa</option>
         </select>
         <select
           value={filters.lang}
@@ -317,10 +319,10 @@ export default function ArticleCategoriesPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={() => setEditTarget(cat)}>
-                          <IconEdit className="size-4" />
+                          <Edit className="size-4" />
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => setDeleteTarget(cat)}>
-                          <IconTrash className="size-4 text-destructive" />
+                          <Trash2 className="size-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
@@ -339,63 +341,59 @@ export default function ArticleCategoriesPage() {
       </div>
 
       {/* Create Drawer */}
-      <Drawer open={createOpen} onOpenChange={setCreateOpen} direction="right">
-        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
-          <DrawerHeader className="border-b px-6 py-4">
-            <DrawerTitle>Thêm danh mục mới</DrawerTitle>
-          </DrawerHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <CategoryForm
-              formId="create-category-form"
-              allCategories={allCategories}
-              onSubmit={handleCreate}
-            />
-          </div>
-          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>
-              Hủy
-            </Button>
-            <Button type="submit" form="create-category-form" disabled={createSubmitting}>
-              {createSubmitting ? "Đang lưu..." : "Tạo mới"}
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
+      <Drawer open={createOpen} onOpenChange={setCreateOpen} className="w-[480px] max-w-[95vw]">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Thêm danh mục mới</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <CategoryForm
+            formId="create-category-form"
+            allCategories={allCategories}
+            onSubmit={handleCreate}
+          />
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>
+            Hủy
+          </Button>
+          <Button type="submit" form="create-category-form" disabled={createSubmitting}>
+            {createSubmitting ? "Đang lưu..." : "Tạo mới"}
+          </Button>
+        </DrawerFooter>
       </Drawer>
 
       {/* Edit Drawer */}
-      <Drawer open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }} direction="right">
-        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
-          <DrawerHeader className="border-b px-6 py-4">
-            <DrawerTitle>Chỉnh sửa danh mục</DrawerTitle>
-          </DrawerHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {editTarget && (
-              <CategoryForm
-                formId="edit-category-form"
-                defaultValues={{
-                  name: editTarget.name,
-                  slug: editTarget.slug,
-                  type: editTarget.type as "article" | "album" | "video",
-                  lang: editTarget.lang,
-                  sortOrder: editTarget.sortOrder,
-                  isActive: editTarget.isActive,
-                  parentId: editTarget.parentId ?? "",
-                }}
-                excludeId={editTarget.id}
-                allCategories={allCategories}
-                onSubmit={handleUpdate}
-              />
-            )}
-          </div>
-          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>
-              Hủy
-            </Button>
-            <Button type="submit" form="edit-category-form" disabled={editSubmitting}>
-              {editSubmitting ? "Đang lưu..." : "Lưu"}
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
+      <Drawer open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }} className="w-[480px] max-w-[95vw]">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Chỉnh sửa danh mục</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {editTarget && (
+            <CategoryForm
+              formId="edit-category-form"
+              defaultValues={{
+                name: editTarget.name,
+                slug: editTarget.slug,
+                type: editTarget.type as "article" | "album" | "video" | "service",
+                lang: editTarget.lang,
+                sortOrder: editTarget.sortOrder,
+                isActive: editTarget.isActive,
+                parentId: editTarget.parentId ?? "",
+              }}
+              excludeId={editTarget.id}
+              allCategories={allCategories}
+              onSubmit={handleUpdate}
+            />
+          )}
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>
+            Hủy
+          </Button>
+          <Button type="submit" form="edit-category-form" disabled={editSubmitting}>
+            {editSubmitting ? "Đang lưu..." : "Lưu"}
+          </Button>
+        </DrawerFooter>
       </Drawer>
 
       {/* Delete Confirm */}

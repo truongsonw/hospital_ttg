@@ -1,8 +1,8 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
-import { Link } from '@tiptap/extension-link';
-import { Image } from '@tiptap/extension-image';
+import { Link as TiptapLink } from '@tiptap/extension-link';
+import { Image as TiptapImage } from '@tiptap/extension-image';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
@@ -11,28 +11,30 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
-import { Table } from '@tiptap/extension-table';
+import { Table as TiptapTable } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { Youtube } from '@tiptap/extension-youtube';
+import { Youtube as TiptapYoutube } from '@tiptap/extension-youtube';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import {
-  IconBold, IconItalic, IconUnderline, IconStrikethrough,
-  IconH1, IconH2, IconH3, IconH4,
-  IconList, IconListNumbers, IconListCheck,
-  IconBlockquote, IconCode, IconCodeDots,
-  IconAlignLeft, IconAlignCenter, IconAlignRight, IconAlignJustified,
-  IconLink, IconLinkOff, IconPhotoUp,
-  IconArrowBackUp, IconArrowForwardUp,
-  IconClearFormatting, IconHighlight,
-  IconSubscript, IconSuperscript,
-  IconSeparator, IconTable, IconBrandYoutube,
-  IconColumnInsertRight, IconRowInsertBottom,
-  IconColumnRemove, IconRowRemove, IconTableOff,
-  IconPalette,
-} from '@tabler/icons-react';
+  Bold, Italic, Strikethrough,
+  Heading1, Heading2, Heading3, Heading4,
+  List, ListOrdered, ListChecks,
+  Quote, Code, Code2,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  Link2Off, ImagePlus,
+  Undo2, Redo2,
+  RemoveFormatting, Highlighter,
+  Minus, Columns, Rows3, Table2, Palette,
+  Underline as LucideUnderline,
+  Link as LucideLink,
+  Subscript as LucideSubscript,
+  Superscript as LucideSuperscript,
+  Table as LucideTable,
+  Video as LucideYoutube,
+} from 'lucide-react';
 
 interface Props {
   value?: string;
@@ -60,16 +62,16 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
       Highlight.configure({ multicolor: true }),
       Subscript,
       Superscript,
-      Link.configure({ openOnClick: false }),
-      Image.configure({ allowBase64: true }),
+      TiptapLink.configure({ openOnClick: false }),
+      TiptapImage.configure({ allowBase64: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      Table.configure({ resizable: true }),
+      TiptapTable.configure({ resizable: true }),
       TableRow,
       TableCell,
       TableHeader,
-      Youtube.configure({ width: 640, height: 480 }),
+      TiptapYoutube.configure({ width: 640, height: 480 }),
       CharacterCount,
       Placeholder.configure({ placeholder }),
     ],
@@ -138,35 +140,35 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
 
         {/* History */}
         <button {...btn(false, 'Undo')} onClick={() => editor.chain().focus().undo().run()}>
-          <IconArrowBackUp className="size-4" />
+          <Undo2 className="size-4" />
         </button>
         <button {...btn(false, 'Redo')} onClick={() => editor.chain().focus().redo().run()}>
-          <IconArrowForwardUp className="size-4" />
+          <Redo2 className="size-4" />
         </button>
 
         <D />
 
         {/* Text format */}
         <button {...btn(editor.isActive('bold'), 'Bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
-          <IconBold className="size-4" />
+          <Bold className="size-4" />
         </button>
         <button {...btn(editor.isActive('italic'), 'Italic')} onClick={() => editor.chain().focus().toggleItalic().run()}>
-          <IconItalic className="size-4" />
+          <Italic className="size-4" />
         </button>
         <button {...btn(editor.isActive('underline'), 'Underline')} onClick={() => editor.chain().focus().toggleUnderline().run()}>
-          <IconUnderline className="size-4" />
+          <LucideUnderline className="size-4" />
         </button>
         <button {...btn(editor.isActive('strike'), 'Strikethrough')} onClick={() => editor.chain().focus().toggleStrike().run()}>
-          <IconStrikethrough className="size-4" />
+          <Strikethrough className="size-4" />
         </button>
         <button {...btn(editor.isActive('subscript'), 'Subscript')} onClick={() => editor.chain().focus().toggleSubscript().run()}>
-          <IconSubscript className="size-4" />
+          <LucideSubscript className="size-4" />
         </button>
         <button {...btn(editor.isActive('superscript'), 'Superscript')} onClick={() => editor.chain().focus().toggleSuperscript().run()}>
-          <IconSuperscript className="size-4" />
+          <LucideSuperscript className="size-4" />
         </button>
         <button {...btn(editor.isActive('code'), 'Inline code')} onClick={() => editor.chain().focus().toggleCode().run()}>
-          <IconCode className="size-4" />
+          <Code className="size-4" />
         </button>
 
         <D />
@@ -174,7 +176,7 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
         {/* Color picker */}
         <div className="relative group">
           <button {...btn(false, 'Màu chữ')} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground flex items-center gap-0.5">
-            <IconPalette className="size-4" />
+            <Palette className="size-4" />
             <span
               className="w-2 h-2 rounded-full border border-border"
               style={{ backgroundColor: editor.getAttributes('textStyle').color ?? '#000' }}
@@ -207,7 +209,7 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
         {/* Highlight picker */}
         <div className="relative group">
           <button {...btn(editor.isActive('highlight'), 'Nền màu')} className={`p-1.5 rounded hover:bg-muted transition-colors ${editor.isActive('highlight') ? 'bg-muted text-primary' : 'text-muted-foreground'}`}>
-            <IconHighlight className="size-4" />
+            <Highlighter className="size-4" />
           </button>
           <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:flex flex-col gap-1 bg-popover border border-border rounded-md p-2 shadow-md">
             <p className="text-[10px] text-muted-foreground mb-1">Màu nền</p>
@@ -237,96 +239,96 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
 
         {/* Headings */}
         <button {...btn(editor.isActive('heading', { level: 1 }), 'H1')} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
-          <IconH1 className="size-4" />
+          <Heading1 className="size-4" />
         </button>
         <button {...btn(editor.isActive('heading', { level: 2 }), 'H2')} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
-          <IconH2 className="size-4" />
+          <Heading2 className="size-4" />
         </button>
         <button {...btn(editor.isActive('heading', { level: 3 }), 'H3')} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
-          <IconH3 className="size-4" />
+          <Heading3 className="size-4" />
         </button>
         <button {...btn(editor.isActive('heading', { level: 4 }), 'H4')} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}>
-          <IconH4 className="size-4" />
+          <Heading4 className="size-4" />
         </button>
 
         <D />
 
         {/* Lists */}
         <button {...btn(editor.isActive('bulletList'), 'Danh sách')} onClick={() => editor.chain().focus().toggleBulletList().run()}>
-          <IconList className="size-4" />
+          <List className="size-4" />
         </button>
         <button {...btn(editor.isActive('orderedList'), 'Danh sách số')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-          <IconListNumbers className="size-4" />
+          <ListOrdered className="size-4" />
         </button>
         <button {...btn(editor.isActive('taskList'), 'Danh sách checkbox')} onClick={() => editor.chain().focus().toggleTaskList().run()}>
-          <IconListCheck className="size-4" />
+          <ListChecks className="size-4" />
         </button>
         <button {...btn(editor.isActive('blockquote'), 'Blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-          <IconBlockquote className="size-4" />
+          <Quote className="size-4" />
         </button>
         <button {...btn(editor.isActive('codeBlock'), 'Code block')} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
-          <IconCodeDots className="size-4" />
+          <Code2 className="size-4" />
         </button>
 
         <D />
 
         {/* Alignment */}
         <button {...btn(editor.isActive({ textAlign: 'left' }), 'Căn trái')} onClick={() => editor.chain().focus().setTextAlign('left').run()}>
-          <IconAlignLeft className="size-4" />
+          <AlignLeft className="size-4" />
         </button>
         <button {...btn(editor.isActive({ textAlign: 'center' }), 'Căn giữa')} onClick={() => editor.chain().focus().setTextAlign('center').run()}>
-          <IconAlignCenter className="size-4" />
+          <AlignCenter className="size-4" />
         </button>
         <button {...btn(editor.isActive({ textAlign: 'right' }), 'Căn phải')} onClick={() => editor.chain().focus().setTextAlign('right').run()}>
-          <IconAlignRight className="size-4" />
+          <AlignRight className="size-4" />
         </button>
         <button {...btn(editor.isActive({ textAlign: 'justify' }), 'Căn đều')} onClick={() => editor.chain().focus().setTextAlign('justify').run()}>
-          <IconAlignJustified className="size-4" />
+          <AlignJustify className="size-4" />
         </button>
 
         <D />
 
         {/* Link / Image / Youtube / HR */}
         <button {...btn(editor.isActive('link'), 'Chèn link')} onClick={addLink}>
-          <IconLink className="size-4" />
+          <LucideLink className="size-4" />
         </button>
         {editor.isActive('link') && (
           <button {...btn(false, 'Xóa link')} onClick={() => editor.chain().focus().unsetLink().run()}>
-            <IconLinkOff className="size-4" />
+            <Link2Off className="size-4" />
           </button>
         )}
         <button {...btn(false, 'Chèn hình')} onClick={addImage}>
-          <IconPhotoUp className="size-4" />
+          <ImagePlus className="size-4" />
         </button>
         <button {...btn(false, 'Chèn YouTube')} onClick={addYoutube}>
-          <IconBrandYoutube className="size-4" />
+          <LucideYoutube className="size-4" />
         </button>
         <button {...btn(false, 'Đường kẻ ngang')} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-          <IconSeparator className="size-4" />
+          <Minus className="size-4" />
         </button>
 
         <D />
 
         {/* Table */}
         <button {...btn(false, 'Chèn bảng')} onClick={insertTable}>
-          <IconTable className="size-4" />
+          <LucideTable className="size-4" />
         </button>
         {editor.isActive('table') && (
           <>
             <button {...btn(false, 'Thêm cột phải')} onClick={() => editor.chain().focus().addColumnAfter().run()}>
-              <IconColumnInsertRight className="size-4" />
+              <Columns className="size-4" />
             </button>
             <button {...btn(false, 'Thêm hàng dưới')} onClick={() => editor.chain().focus().addRowAfter().run()}>
-              <IconRowInsertBottom className="size-4" />
+              <Rows3 className="size-4" />
             </button>
             <button {...btn(false, 'Xóa cột')} onClick={() => editor.chain().focus().deleteColumn().run()}>
-              <IconColumnRemove className="size-4" />
+              <Columns className="size-4" />
             </button>
             <button {...btn(false, 'Xóa hàng')} onClick={() => editor.chain().focus().deleteRow().run()}>
-              <IconRowRemove className="size-4" />
+              <Rows3 className="size-4" />
             </button>
             <button {...btn(false, 'Xóa bảng')} onClick={() => editor.chain().focus().deleteTable().run()}>
-              <IconTableOff className="size-4" />
+              <Table2 className="size-4" />
             </button>
           </>
         )}
@@ -335,7 +337,7 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
 
         {/* Clear */}
         <button {...btn(false, 'Xóa định dạng')} onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}>
-          <IconClearFormatting className="size-4" />
+          <RemoveFormatting className="size-4" />
         </button>
       </div>
 

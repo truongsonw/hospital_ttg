@@ -1,19 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { getFeaturedDoctors } from "~/services/doctor.service";
 import type { DoctorDto } from "~/types/doctor";
 
-export default function DoctorSlider() {
-  const [doctors, setDoctors] = useState<DoctorDto[]>([]);
+interface DoctorSliderProps {
+  doctors?: DoctorDto[];
+}
+
+export default function DoctorSlider({ doctors = [] }: DoctorSliderProps) {
   const [visible, setVisible] = useState(4);
   const [current, setCurrent] = useState(4);
   const [transition, setTransition] = useState(true);
   const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    getFeaturedDoctors(8).then(setDoctors).catch(() => {});
-  }, []);
 
   const isLoopable = doctors.length > visible;
 
@@ -87,7 +85,7 @@ export default function DoctorSlider() {
       </div>
 
       {doctors.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">Đang tải...</div>
+        <div className="text-center py-12 text-gray-400">Chưa có thông tin bác sĩ nổi bật.</div>
       ) : (
         <div
           className="relative overflow-hidden"

@@ -1,3 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts.Article\Contracts.Article.csproj" />
+    <ProjectReference Include="..\Contracts.Doctor\Contracts.Doctor.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,9 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { HomePageSlideDto } from "~/types/home";
 
-const slides = ["/images/banner/Ngoai.png"];
+const fallbackSlides: HomePageSlideDto[] = [
+  {
+    imageUrl: "/images/banner/Ngoai.png",
+    altText: "Bệnh viện TTG",
+    sortOrder: 1,
+    isActive: true,
+  },
+];
 
-export default function Carousel() {
+interface CarouselProps {
+  slides?: HomePageSlideDto[];
+}
+
+export default function Carousel({ slides: inputSlides = fallbackSlides }: CarouselProps) {
+  const slides = inputSlides.length > 0 ? inputSlides : fallbackSlides;
   const isSingle = slides.length === 1;
 
   const [current, setCurrent] = useState(isSingle ? 0 : 1);
@@ -15,6 +28,11 @@ export default function Carousel() {
   const extendedSlides = isSingle
     ? slides
     : [slides[slides.length - 1], ...slides, slides[0]];
+
+  useEffect(() => {
+    setCurrent(isSingle ? 0 : 1);
+    setTransition(true);
+  }, [isSingle, slides.length]);
 
   const nextSlide = () => {
     if (isSingle) return;
@@ -93,14 +111,14 @@ export default function Carousel() {
         onMouseLeave={(e) => handleEnd(e.clientX)}
         onTouchStart={(e) => handleStart(e.touches[0].clientX)}
         onTouchEnd={(e) => handleEnd(e.changedTouches[0].clientX)}>
-        {extendedSlides.map((src, index) => (
+        {extendedSlides.map((slide, index) => (
           <div
             key={index}
             className="relative w-full flex-shrink-0 select-none
               h-[200px] sm:h-[300px] md:h-[420px] lg:h-[520px] xl:h-[620px]">
             <img
-              src={src}
-              alt={`Slide ${index}`}
+              src={slide.imageUrl}
+              alt={slide.altText || slide.title || `Slide ${index + 1}`}
               className="object-cover w-full h-full pointer-events-none"
             />
           </div>

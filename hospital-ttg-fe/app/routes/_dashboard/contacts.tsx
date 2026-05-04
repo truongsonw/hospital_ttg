@@ -1,6 +1,8 @@
 import * as React from "react";
 import { toast } from "sonner";
-import { IconTrash, IconMail } from "@tabler/icons-react";
+import { Trash2, Mail } from "lucide-react";
+import { XIcon } from "lucide-react";
+import { cn } from "~/lib/utils";
 import { ApiError } from "~/lib/api";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -13,9 +15,6 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "~/components/ui/dialog";
-import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle,
-} from "~/components/ui/drawer";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "~/components/ui/select";
@@ -127,14 +126,40 @@ function ContactDetailDrawer({
     });
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="!w-full max-w-lg ml-auto h-full flex flex-col">
-        <DrawerHeader className="border-b pb-4">
-          <DrawerTitle className="flex items-center gap-2">
-            <IconMail className="h-4 w-4 text-gray-500" />
-            Chi tiết liên hệ
-          </DrawerTitle>
-        </DrawerHeader>
+    <>
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/10 supports-backdrop-filter:backdrop-blur-xs"
+          onClick={() => onOpenChange(false)}
+        />
+      )}
+
+      {/* Panel */}
+      <div
+        data-slot="side-panel"
+        className={cn(
+          "fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col bg-popover p-0 text-popover-foreground shadow-none",
+          "translate-x-0 transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="border-b pb-4">
+          <div className="flex items-center justify-between px-6 pt-4">
+            <h2 className="font-heading text-base font-medium leading-none flex items-center gap-2">
+              <Mail className="h-4 w-4 text-gray-500" />
+              Chi tiết liên hệ
+            </h2>
+            <button
+              type="button"
+              className="rounded-sm opacity-70 transition-opacity hover:opacity-100"
+              onClick={() => onOpenChange(false)}
+            >
+              <XIcon className="size-4" />
+              <span className="sr-only">Đóng</span>
+            </button>
+          </div>
+        </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -241,8 +266,8 @@ function ContactDetailDrawer({
             </form>
           </DialogContent>
         </Dialog>
-      </DrawerContent>
-    </Drawer>
+      </div>
+    </>
   );
 }
 
@@ -403,7 +428,7 @@ export default function ContactsPage() {
                       className="text-destructive hover:text-destructive"
                       onClick={() => setDeleteId(c.id)}
                     >
-                      <IconTrash className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

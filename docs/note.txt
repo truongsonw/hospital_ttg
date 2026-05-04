@@ -4,4 +4,8 @@
 - Wrapper error
 - Quản lý menu dashboard và quản lý Menu giao diện người dùng
 - Báo cáo thống kê, xuất excel.
+	+ GET `/api/system/stats` yêu cầu quyền Admin, trả `ApiResponse<DashboardStatsDto>` với các số liệu tổng hợp theo nhóm và `generatedAtUtc`; không trả PII.
+	+ Trang `/dashboard` dùng endpoint thống kê hệ thống, bỏ biểu đồ/bảng demo và hiển thị lối tắt tới các module quản trị chính.
 - Phân quyền hệ thống
+
+- viết tài liệu

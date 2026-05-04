@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { ArrowLeft } from "lucide-react";
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -23,7 +23,7 @@ export function meta() {
 const schema = z.object({
   title: z.string().min(1, 'Bắt buộc').max(500),
   slug: z.string().min(1, 'Bắt buộc').max(500),
-  contentType: z.enum(['article', 'album', 'video']),
+  contentType: z.enum(['article', 'album', 'video', 'service']),
   categoryId: z.string().min(1, 'Bắt buộc'),
   status: z.number().int().min(0).max(1),
   isHot: z.boolean(),
@@ -95,7 +95,7 @@ export default function ArticleContentsCreatePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/article/contents')}>
-          <IconArrowLeft className="size-5" />
+          <ArrowLeft className="size-5" />
         </Button>
         <div>
           <h1 className="text-xl font-semibold">Thêm nội dung mới</h1>
@@ -130,6 +130,7 @@ export default function ArticleContentsCreatePage() {
                 <option value="article">Bài viết</option>
                 <option value="album">Album ảnh</option>
                 <option value="video">Video</option>
+                <option value="service">Dịch vụ y khoa</option>
               </select>
             </div>
             <div className="space-y-2">

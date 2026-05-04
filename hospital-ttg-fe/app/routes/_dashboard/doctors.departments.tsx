@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconTrash, IconPencil, IconPlus } from "@tabler/icons-react";
+import { Trash2, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -14,7 +14,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "~/components/ui/table";
 import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter,
+  Drawer,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
 } from "~/components/ui/drawer";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -195,7 +198,7 @@ export default function DepartmentsPage() {
           <p className="text-sm text-gray-500 mt-0.5">Nhóm và khoa/chuyên khoa trong bệnh viện.</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
-          <IconPlus className="h-4 w-4 mr-1" /> Thêm khoa
+          <Plus className="h-4 w-4 mr-1" /> Thêm khoa
         </Button>
       </div>
 
@@ -238,10 +241,10 @@ export default function DepartmentsPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setEditTarget(dept)}>
-                        <IconPencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(dept.id)}>
-                        <IconTrash className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -253,57 +256,53 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Create Drawer */}
-      <Drawer open={createOpen} onOpenChange={setCreateOpen} direction="right">
-        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
-          <DrawerHeader className="border-b px-6 py-4">
-            <DrawerTitle>Thêm khoa mới</DrawerTitle>
-          </DrawerHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <DepartmentForm
-              formId="create-dept-form"
-              allDepts={items}
-              onSubmit={handleCreate}
-            />
-          </div>
-          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>Hủy</Button>
-            <Button type="submit" form="create-dept-form" disabled={createSubmitting}>
-              {createSubmitting ? "Đang lưu..." : "Thêm mới"}
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
+      <Drawer open={createOpen} onOpenChange={setCreateOpen} className="w-[480px] max-w-[95vw]">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Thêm khoa mới</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <DepartmentForm
+            formId="create-dept-form"
+            allDepts={items}
+            onSubmit={handleCreate}
+          />
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>Hủy</Button>
+          <Button type="submit" form="create-dept-form" disabled={createSubmitting}>
+            {createSubmitting ? "Đang lưu..." : "Thêm mới"}
+          </Button>
+        </DrawerFooter>
       </Drawer>
 
       {/* Edit Drawer */}
-      <Drawer open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }} direction="right">
-        <DrawerContent className="w-[480px]! max-w-[95vw]! flex flex-col">
-          <DrawerHeader className="border-b px-6 py-4">
-            <DrawerTitle>Chỉnh sửa khoa</DrawerTitle>
-          </DrawerHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {editTarget && (
-              <DepartmentForm
-                formId="edit-dept-form"
-                defaultValues={{
-                  name: editTarget.name,
-                  description: editTarget.description ?? "",
-                  parentId: editTarget.parentId ?? "",
-                  sortOrder: editTarget.sortOrder,
-                  isActive: editTarget.isActive,
-                }}
-                allDepts={items}
-                excludeId={editTarget.id}
-                onSubmit={handleUpdate}
-              />
-            )}
-          </div>
-          <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>Hủy</Button>
-            <Button type="submit" form="edit-dept-form" disabled={editSubmitting}>
-              {editSubmitting ? "Đang lưu..." : "Lưu"}
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
+      <Drawer open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }} className="w-[480px] max-w-[95vw]">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Chỉnh sửa khoa</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {editTarget && (
+            <DepartmentForm
+              formId="edit-dept-form"
+              defaultValues={{
+                name: editTarget.name,
+                description: editTarget.description ?? "",
+                parentId: editTarget.parentId ?? "",
+                sortOrder: editTarget.sortOrder,
+                isActive: editTarget.isActive,
+              }}
+              allDepts={items}
+              excludeId={editTarget.id}
+              onSubmit={handleUpdate}
+            />
+          )}
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>Hủy</Button>
+          <Button type="submit" form="edit-dept-form" disabled={editSubmitting}>
+            {editSubmitting ? "Đang lưu..." : "Lưu"}
+          </Button>
+        </DrawerFooter>
       </Drawer>
 
       {/* Delete Dialog */}

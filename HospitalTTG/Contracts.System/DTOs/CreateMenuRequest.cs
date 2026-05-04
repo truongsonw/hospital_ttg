@@ -1,3 +1,5 @@
+using Contracts.System.Enums;
+
 namespace Contracts.System.DTOs;
 
 public class CreateMenuRequest
@@ -8,4 +10,5 @@ public class CreateMenuRequest
     public string? Icon { get; set; }
     public int SortOrder { get; set; } = 0;
     public bool IsActive { get; set; } = true;
+    public MenuType Type { get; set; } = MenuType.Admin;
 }

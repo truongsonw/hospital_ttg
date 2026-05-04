@@ -4,14 +4,13 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconEdit, IconTrash, IconPlus, IconFlame, IconExternalLink } from "@tabler/icons-react";
+import { Edit, Trash2, Plus, Flame, ExternalLink } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   Drawer,
-  DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
@@ -47,7 +46,7 @@ export function meta() {
 const schema = z.object({
   title: z.string().min(1, "Bắt buộc").max(500),
   slug: z.string().min(1, "Bắt buộc").max(500),
-  contentType: z.enum(["article", "album", "video"]),
+  contentType: z.enum(["article", "album", "video", "service"]),
   categoryId: z.string().min(1, "Bắt buộc"),
   status: z.number().int().min(0).max(1),
   isHot: z.boolean(),
@@ -126,6 +125,7 @@ function ContentFormFields({
             <option value="article">Bài viết</option>
             <option value="album">Album ảnh</option>
             <option value="video">Video</option>
+            <option value="service">Dịch vụ y khoa</option>
           </select>
         </div>
         <div className="space-y-1.5">
@@ -285,31 +285,29 @@ function CreateDrawer({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="w-[720px]! max-w-[95vw]! flex flex-col">
-        <DrawerHeader className="border-b px-6 py-4">
-          <DrawerTitle>Thêm nội dung mới</DrawerTitle>
-        </DrawerHeader>
+    <Drawer open={open} onOpenChange={onOpenChange} className="w-[720px] max-w-[95vw]">
+      <DrawerHeader className="border-b px-6 py-4">
+        <DrawerTitle>Thêm nội dung mới</DrawerTitle>
+      </DrawerHeader>
 
-        <ContentFormFields
-          formId="create-content-form"
-          register={register}
-          control={control}
-          errors={errors}
-          categories={categories}
-          serverError={serverError}
-          onSubmit={handleSubmit(onSubmit)}
-        />
+      <ContentFormFields
+        formId="create-content-form"
+        register={register}
+        control={control}
+        errors={errors}
+        categories={categories}
+        serverError={serverError}
+        onSubmit={handleSubmit(onSubmit)}
+      />
 
-        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-          <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-            Hủy
-          </Button>
-          <Button type="submit" form="create-content-form" disabled={isSubmitting}>
-            {isSubmitting ? "Đang lưu..." : "Tạo nội dung"}
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
+      <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+        <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          Hủy
+        </Button>
+        <Button type="submit" form="create-content-form" disabled={isSubmitting}>
+          {isSubmitting ? "Đang lưu..." : "Tạo nội dung"}
+        </Button>
+      </DrawerFooter>
     </Drawer>
   );
 }
@@ -344,7 +342,7 @@ function EditDrawer({
         reset({
           title: content.title,
           slug: content.slug,
-          contentType: content.contentType as "article" | "album" | "video",
+          contentType: content.contentType as "article" | "album" | "video" | "service",
           categoryId: content.categoryId,
           status: content.status,
           isHot: content.isHot,
@@ -390,37 +388,35 @@ function EditDrawer({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="w-[720px]! max-w-[95vw]! flex flex-col">
-        <DrawerHeader className="border-b px-6 py-4">
-          <DrawerTitle>Chỉnh sửa nội dung</DrawerTitle>
-        </DrawerHeader>
+    <Drawer open={open} onOpenChange={onOpenChange} className="w-[720px] max-w-[95vw]">
+      <DrawerHeader className="border-b px-6 py-4">
+        <DrawerTitle>Chỉnh sửa nội dung</DrawerTitle>
+      </DrawerHeader>
 
-        {loadingContent ? (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">Đang tải...</p>
-          </div>
-        ) : (
-          <ContentFormFields
-            formId="edit-content-form"
-            register={register}
-            control={control}
-            errors={errors}
-            categories={categories}
-            serverError={serverError}
-            onSubmit={handleSubmit(onSubmit)}
-          />
-        )}
+      {loadingContent ? (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Đang tải...</p>
+        </div>
+      ) : (
+        <ContentFormFields
+          formId="edit-content-form"
+          register={register}
+          control={control}
+          errors={errors}
+          categories={categories}
+          serverError={serverError}
+          onSubmit={handleSubmit(onSubmit)}
+        />
+      )}
 
-        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
-          <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting || loadingContent}>
-            Hủy
-          </Button>
-          <Button type="submit" form="edit-content-form" disabled={isSubmitting || loadingContent}>
-            {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
+      <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+        <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting || loadingContent}>
+          Hủy
+        </Button>
+        <Button type="submit" form="edit-content-form" disabled={isSubmitting || loadingContent}>
+          {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
+        </Button>
+      </DrawerFooter>
     </Drawer>
   );
 }
@@ -431,6 +427,7 @@ const TYPE_LABELS: Record<string, string> = {
   article: "Bài viết",
   album: "Album",
   video: "Video",
+  service: "Dịch vụ y khoa",
 };
 
 function formatDate(d: string | null) {
@@ -506,7 +503,7 @@ export default function ArticleContentsPage() {
           <p className="text-sm text-gray-500 mt-1">Bài viết, album ảnh và video</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
-          <IconPlus className="size-4 mr-1" /> Thêm nội dung
+          <Plus className="size-4 mr-1" /> Thêm nội dung
         </Button>
       </div>
 
@@ -521,6 +518,7 @@ export default function ArticleContentsPage() {
           <option value="article">Bài viết</option>
           <option value="album">Album ảnh</option>
           <option value="video">Video</option>
+          <option value="service">Dịch vụ y khoa</option>
         </select>
         <select
           value={filters.categoryId}
@@ -580,7 +578,7 @@ export default function ArticleContentsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {item.isHot && <IconFlame className="size-4 text-orange-500 mx-auto" />}
+                      {item.isHot && <Flame className="size-4 text-orange-500 mx-auto" />}
                     </TableCell>
                     <TableCell className="text-center text-sm">{item.viewCount}</TableCell>
                     <TableCell className="text-center text-sm">{formatDate(item.publishedAt)}</TableCell>
@@ -588,14 +586,14 @@ export default function ArticleContentsPage() {
                       <div className="flex justify-end gap-1">
                         <Link to={`/tin-tuc/${item.slug}`} target="_blank" rel="noopener noreferrer">
                           <Button size="icon" variant="ghost" title="Xem trang chi tiết">
-                            <IconExternalLink className="size-4 text-muted-foreground" />
+                            <ExternalLink className="size-4 text-muted-foreground" />
                           </Button>
                         </Link>
                         <Button size="icon" variant="ghost" onClick={() => openEdit(item.id)}>
-                          <IconEdit className="size-4" />
+                          <Edit className="size-4" />
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => setDeleteTarget(item)}>
-                          <IconTrash className="size-4 text-destructive" />
+                          <Trash2 className="size-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>

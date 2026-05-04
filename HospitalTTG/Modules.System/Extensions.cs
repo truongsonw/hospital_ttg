@@ -26,6 +26,10 @@ public static class Extensions
         // Site Settings
         services.AddScoped<ISiteSettingRepository, SiteSettingRepository>();
         services.AddScoped<ISiteSettingService, SiteSettingService>();
+        services.AddScoped<IHomePageService, HomePageService>();
+
+        // Dashboard stats
+        services.AddScoped<IDashboardStatsService, DashboardStatsService>();
 
         return services;
     }

@@ -4,6 +4,7 @@ import type { ChangePasswordRequest, TokenResponse, UserDto } from '~/types/auth
 const REFRESH_TOKEN_KEY = 'hospital_ttg_refresh_token';
 
 let _accessToken: string | null = null;
+let refreshInFlight: Promise<boolean> | null = null;
 
 export function getAccessToken(): string | null {
   return _accessToken;
@@ -51,29 +52,39 @@ export async function logout(): Promise<void> {
 }
 
 export async function tryRefresh(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight;
+
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
 
-  try {
-    const res = await fetch(
-      `${(import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:5020'}/api/auth/refresh`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(refreshToken),
-      },
-    );
-    if (!res.ok) {
+  refreshInFlight = (async () => {
+    try {
+      const res = await fetch(
+        `${(import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:5020'}/api/auth/refresh`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(refreshToken),
+        },
+      );
+      if (!res.ok) {
+        setRefreshToken(null);
+        return false;
+      }
+      const data = await res.json();
+      setAccessToken(data.data.accessToken);
+      setRefreshToken(data.data.refreshToken);
+      return true;
+    } catch {
       setRefreshToken(null);
       return false;
     }
-    const data = await res.json();
-    setAccessToken(data.data.accessToken);
-    setRefreshToken(data.data.refreshToken);
-    return true;
-  } catch {
-    setRefreshToken(null);
-    return false;
+  })();
+
+  try {
+    return await refreshInFlight;
+  } finally {
+    refreshInFlight = null;
   }
 }
 

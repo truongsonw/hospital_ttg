@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconEdit, IconTrash, IconPlus, IconChevronRight } from "@tabler/icons-react";
+import { Edit, Trash2, Plus, ChevronRight } from "lucide-react";
 import type { Route } from "./+types/system.menus";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -30,7 +30,7 @@ import {
   updateMenu,
   deleteMenu,
 } from "~/services/menu.service";
-import type { MenuDto } from "~/types/system";
+import { MenuType, type MenuDto } from "~/types/system";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Quản lý Menu | Hospital TTG" }];
@@ -110,6 +110,7 @@ function CreateMenuDialog({
         sortOrder: values.sortOrder,
         isActive: values.isActive,
         parentId: values.parentId || null,
+        type: MenuType.Admin,
       });
       toast.success("Tạo menu thành công");
       setOpen(false);
@@ -123,7 +124,7 @@ function CreateMenuDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }}>
       <Button onClick={() => setOpen(true)}>
-        <IconPlus className="size-4 mr-1" /> Thêm menu
+        <Plus className="size-4 mr-1" /> Thêm menu
       </Button>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -379,7 +380,7 @@ export default function SystemMenusPage() {
   async function loadMenus() {
     setLoading(true);
     try {
-      setMenus(await getAllMenus());
+      setMenus(await getAllMenus(MenuType.Admin));
     } catch {
       toast.error("Không thể tải danh sách menu");
     } finally {
@@ -421,7 +422,7 @@ export default function SystemMenusPage() {
                 <TableRow key={menu.id}>
                   <TableCell>
                     <span style={{ paddingLeft: `${menu.depth * 20}px` }} className="flex items-center gap-1">
-                      {menu.depth > 0 && <IconChevronRight className="size-3 text-muted-foreground" />}
+                      {menu.depth > 0 && <ChevronRight className="size-3 text-muted-foreground" />}
                       {menu.title}
                     </span>
                   </TableCell>
@@ -436,10 +437,10 @@ export default function SystemMenusPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button size="icon" variant="ghost" onClick={() => setEditTarget(menu)}>
-                        <IconEdit className="size-4" />
+                        <Edit className="size-4" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => setDeleteTarget(menu)}>
-                        <IconTrash className="size-4 text-destructive" />
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </div>
                   </TableCell>

@@ -28,13 +28,14 @@ export default function Footer() {
   const youtube = s["youtube"] || "";
   const zalo = s["zalo"] || "";
   const tiktok = s["tiktok"] || "";
+  const wrapperClass = "mx-auto w-full max-w-7xl px-4";
 
   return (
     <footer className="bg-[#008046] text-white">
       {/* Top Yellow Bar */}
       {hotline && (
         <div className="bg-[#ffc52c] text-gray-800 py-3">
-          <div className="container mx-auto px-4 flex items-center">
+          <div className={`${wrapperClass} flex items-center`}>
             <p className="text-sm font-semibold flex items-center">
               <Phone className="w-4 h-4 mr-2" />
               Tổng đài <span className="font-bold ml-1">{hotline}</span>
@@ -44,7 +45,7 @@ export default function Footer() {
       )}
 
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className={`${wrapperClass} py-12`}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Column 1: Hospital Info */}
           <div>
@@ -226,7 +227,7 @@ export default function Footer() {
       </div>
 
       <div className="py-4 border-t border-white/10">
-        <div className="container mx-auto px-4">
+        <div className={wrapperClass}>
           <p className="text-center text-sm text-green-200">{copyright}</p>
         </div>
       </div>
