@@ -16,6 +16,11 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(x => x.Lang).IsRequired().HasMaxLength(10).HasDefaultValue("vi");
         builder.Property(x => x.SortOrder).HasDefaultValue(0);
         builder.Property(x => x.IsActive).HasDefaultValue(true);
+        builder.Property(x => x.IsHomepageFeatured).HasDefaultValue(false);
+        builder.Property(x => x.HomepageSubtitle).HasMaxLength(200);
+        builder.Property(x => x.HomepageDescription).HasMaxLength(500);
+        builder.Property(x => x.HomepageButtonText).HasMaxLength(100);
+        builder.Property(x => x.HomepageButtonUrl).HasMaxLength(500);
 
         builder.HasIndex(x => new { x.Slug, x.Lang }).IsUnique();
         builder.HasIndex(x => x.ParentId);

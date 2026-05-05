@@ -27,6 +27,7 @@ const schema = z.object({
   categoryId: z.string().min(1, 'Bắt buộc'),
   status: z.number().int().min(0).max(1),
   isHot: z.boolean(),
+  isHomepageFeatured: z.boolean(),
   intro: z.string().optional(),
   body: z.string().optional(),
   thumbnail: z.string().optional(),
@@ -58,6 +59,7 @@ export default function ArticleContentsCreatePage() {
       categoryId: '',
       status: 1,
       isHot: false,
+      isHomepageFeatured: false,
       intro: '',
       body: '',
       thumbnail: '',
@@ -185,6 +187,16 @@ export default function ArticleContentsCreatePage() {
               <input type="checkbox" id="isHot" {...register('isHot')} className="size-4" />
               <Label htmlFor="isHot">Nội dung nổi bật (Hot)</Label>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isHomepageFeatured"
+              {...register('isHomepageFeatured')}
+              className="size-4"
+            />
+            <Label htmlFor="isHomepageFeatured">Hiển thị ở trang chủ</Label>
           </div>
         </div>
 

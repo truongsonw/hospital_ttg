@@ -19,6 +19,12 @@ export interface CategoryDto {
   lang: string;
   sortOrder: number;
   isActive: boolean;
+  isHomepageFeatured: boolean;
+  homepageSubtitle: string | null;
+  homepageDescription: string | null;
+  homepageButtonText: string | null;
+  homepageButtonUrl: string | null;
+  homepageLimit: number | null;
 }
 
 export interface CreateCategoryRequest {
@@ -29,6 +35,12 @@ export interface CreateCategoryRequest {
   lang: string;
   sortOrder: number;
   isActive: boolean;
+  isHomepageFeatured: boolean;
+  homepageSubtitle?: string | null;
+  homepageDescription?: string | null;
+  homepageButtonText?: string | null;
+  homepageButtonUrl?: string | null;
+  homepageLimit?: number | null;
 }
 
 export interface UpdateCategoryRequest extends CreateCategoryRequest {}
@@ -45,9 +57,11 @@ export interface ContentDto {
   body: string | null;
   thumbnail: string | null;
   fileAttach: string | null;
+  pdfViewMode: string | null;
   tags: string | null;
   status: number;
   isHot: boolean;
+  isHomepageFeatured: boolean;
   viewCount: number;
   publishedAt: string | null;
 }
@@ -61,9 +75,11 @@ export interface CreateContentRequest {
   body?: string | null;
   thumbnail?: string | null;
   fileAttach?: string | null;
+  pdfViewMode?: string | null;
   tags?: string | null;
   status: number;
   isHot: boolean;
+  isHomepageFeatured: boolean;
   publishedAt?: string | null;
 }
 

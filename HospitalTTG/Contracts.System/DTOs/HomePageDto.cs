@@ -7,11 +7,11 @@ public class HomePageDto
 {
     public IReadOnlyList<HomePageSlideDto> HeroSlides { get; set; } = [];
     public IReadOnlyList<HomePageQuickActionDto> QuickActions { get; set; } = [];
+    public HomePageSectionDto DepartmentsSection { get; set; } = new();
     public IReadOnlyList<DepartmentDto> Departments { get; set; } = [];
-    public HomePageSectionDto FeaturedServicesSection { get; set; } = new();
-    public IReadOnlyList<ContentDto> FeaturedServices { get; set; } = [];
-    public HomePageSectionDto FeaturedNewsSection { get; set; } = new();
-    public IReadOnlyList<ContentDto> FeaturedNews { get; set; } = [];
+    public IReadOnlyList<string> DepartmentsImages { get; set; } = [];
+    public IReadOnlyList<HomePageContentSectionDto> ContentSections { get; set; } = [];
+    public HomePageSectionDto FeaturedDoctorsSection { get; set; } = new();
     public IReadOnlyList<DoctorDto> FeaturedDoctors { get; set; } = [];
     public HomePageContactDto Contact { get; set; } = new();
 }
@@ -34,6 +34,20 @@ public class HomePageSectionDto
     public string? Description { get; set; }
     public string? ButtonText { get; set; }
     public string? ButtonUrl { get; set; }
+}
+
+public class HomePageContentSectionDto
+{
+    public Guid CategoryId { get; set; }
+    public string CategorySlug { get; set; } = string.Empty;
+    public string CategoryType { get; set; } = string.Empty;
+    public string? Subtitle { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public string? ButtonText { get; set; }
+    public string? ButtonUrl { get; set; }
+    public int SortOrder { get; set; }
+    public IReadOnlyList<ContentDto> Contents { get; set; } = [];
 }
 
 public class HomePageQuickActionDto

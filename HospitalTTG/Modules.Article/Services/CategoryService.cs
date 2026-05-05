@@ -44,6 +44,12 @@ internal sealed class CategoryService : ICategoryService
         return items.Select(MapToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<CategoryDto>> GetHomepageFeaturedAsync(string? type = null, CancellationToken ct = default)
+    {
+        var items = await _repository.GetHomepageFeaturedAsync(type, ct);
+        return items.Select(MapToDto).ToList();
+    }
+
     public async Task<CategoryDto> CreateAsync(CreateCategoryRequest request, CancellationToken ct = default)
     {
         var entity = new Category
@@ -54,7 +60,13 @@ internal sealed class CategoryService : ICategoryService
             Type = request.Type,
             Lang = request.Lang,
             SortOrder = request.SortOrder,
-            IsActive = request.IsActive
+            IsActive = request.IsActive,
+            IsHomepageFeatured = request.IsHomepageFeatured,
+            HomepageSubtitle = request.HomepageSubtitle,
+            HomepageDescription = request.HomepageDescription,
+            HomepageButtonText = request.HomepageButtonText,
+            HomepageButtonUrl = request.HomepageButtonUrl,
+            HomepageLimit = request.HomepageLimit
         };
 
         _repository.Add(entity);
@@ -75,6 +87,12 @@ internal sealed class CategoryService : ICategoryService
         entity.Lang = request.Lang;
         entity.SortOrder = request.SortOrder;
         entity.IsActive = request.IsActive;
+        entity.IsHomepageFeatured = request.IsHomepageFeatured;
+        entity.HomepageSubtitle = request.HomepageSubtitle;
+        entity.HomepageDescription = request.HomepageDescription;
+        entity.HomepageButtonText = request.HomepageButtonText;
+        entity.HomepageButtonUrl = request.HomepageButtonUrl;
+        entity.HomepageLimit = request.HomepageLimit;
 
         _repository.Update(entity);
         await _unitOfWork.SaveChangesAsync(ct);
@@ -100,6 +118,12 @@ internal sealed class CategoryService : ICategoryService
         Type = e.Type,
         Lang = e.Lang,
         SortOrder = e.SortOrder,
-        IsActive = e.IsActive
+        IsActive = e.IsActive,
+        IsHomepageFeatured = e.IsHomepageFeatured,
+        HomepageSubtitle = e.HomepageSubtitle,
+        HomepageDescription = e.HomepageDescription,
+        HomepageButtonText = e.HomepageButtonText,
+        HomepageButtonUrl = e.HomepageButtonUrl,
+        HomepageLimit = e.HomepageLimit
     };
 }

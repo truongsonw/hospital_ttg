@@ -53,7 +53,13 @@ const schema = z.object({
   lang: z.string().min(1).max(10),
   sortOrder: z.number().int(),
   isActive: z.boolean(),
+  isHomepageFeatured: z.boolean(),
   parentId: z.string().optional(),
+  homepageSubtitle: z.string().optional(),
+  homepageDescription: z.string().optional(),
+  homepageButtonText: z.string().optional(),
+  homepageButtonUrl: z.string().optional(),
+  homepageLimit: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -79,6 +85,7 @@ function CategoryForm({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -89,7 +96,13 @@ function CategoryForm({
       lang: "vi",
       sortOrder: 0,
       isActive: true,
+      isHomepageFeatured: false,
       parentId: "",
+      homepageSubtitle: "",
+      homepageDescription: "",
+      homepageButtonText: "",
+      homepageButtonUrl: "",
+      homepageLimit: "",
       ...defaultValues,
     },
   });
@@ -157,6 +170,55 @@ function CategoryForm({
         <input type="checkbox" id={`${formId}-isActive`} {...register("isActive")} className="size-4" />
         <Label htmlFor={`${formId}-isActive`}>Kích hoạt</Label>
       </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id={`${formId}-isHomepageFeatured`}
+          {...register("isHomepageFeatured")}
+          className="size-4"
+        />
+        <Label htmlFor={`${formId}-isHomepageFeatured`}>
+          Hiển thị danh mục này ở trang chủ (thành 1 section riêng)
+        </Label>
+      </div>
+
+      {watch("isHomepageFeatured") && (
+        <div className="space-y-3 rounded-md border border-dashed p-3">
+          <p className="text-xs text-muted-foreground">
+            Cấu hình hiển thị section này trên trang chủ. Để trống = dùng giá trị mặc định.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Nhãn (subtitle)</Label>
+              <Input placeholder="VD: TIN TỨC" {...register("homepageSubtitle")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Số bài hiển thị</Label>
+              <Input
+                type="number"
+                min={1}
+                placeholder="4"
+                {...register("homepageLimit")}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Mô tả ngắn</Label>
+            <Input placeholder="Tuỳ chọn..." {...register("homepageDescription")} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Text nút</Label>
+              <Input placeholder="Xem tất cả" {...register("homepageButtonText")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>URL nút</Label>
+              <Input placeholder="/tin-tuc?type=..." {...register("homepageButtonUrl")} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}
     </form>
   );
@@ -204,10 +266,23 @@ export default function ArticleCategoriesPage() {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   }
 
+  function buildPayload(values: FormValues) {
+    const limit = values.homepageLimit ? parseInt(values.homepageLimit, 10) : null;
+    return {
+      ...values,
+      parentId: values.parentId || null,
+      homepageSubtitle: values.homepageSubtitle || null,
+      homepageDescription: values.homepageDescription || null,
+      homepageButtonText: values.homepageButtonText || null,
+      homepageButtonUrl: values.homepageButtonUrl || null,
+      homepageLimit: Number.isFinite(limit) && limit && limit > 0 ? limit : null,
+    };
+  }
+
   async function handleCreate(values: FormValues) {
     setCreateSubmitting(true);
     try {
-      await createCategory({ ...values, parentId: values.parentId || null });
+      await createCategory(buildPayload(values));
       toast.success("Tạo danh mục thành công");
       setCreateOpen(false);
       loadData();
@@ -220,7 +295,7 @@ export default function ArticleCategoriesPage() {
     if (!editTarget) return;
     setEditSubmitting(true);
     try {
-      await updateCategory(editTarget.id, { ...values, parentId: values.parentId || null });
+      await updateCategory(editTarget.id, buildPayload(values));
       toast.success("Cập nhật danh mục thành công");
       setEditTarget(null);
       loadData();
@@ -378,7 +453,13 @@ export default function ArticleCategoriesPage() {
                 lang: editTarget.lang,
                 sortOrder: editTarget.sortOrder,
                 isActive: editTarget.isActive,
+                isHomepageFeatured: editTarget.isHomepageFeatured,
                 parentId: editTarget.parentId ?? "",
+                homepageSubtitle: editTarget.homepageSubtitle ?? "",
+                homepageDescription: editTarget.homepageDescription ?? "",
+                homepageButtonText: editTarget.homepageButtonText ?? "",
+                homepageButtonUrl: editTarget.homepageButtonUrl ?? "",
+                homepageLimit: editTarget.homepageLimit != null ? String(editTarget.homepageLimit) : "",
               }}
               excludeId={editTarget.id}
               allCategories={allCategories}

@@ -48,6 +48,13 @@ public class DoctorService : IDoctorService
         return items.Select(d => MapToDto(d, deptMap)).ToList();
     }
 
+    public async Task<IReadOnlyList<DoctorDto>> GetHomepageFeaturedAsync(int limit, CancellationToken ct = default)
+    {
+        var items = await _repo.GetHomepageFeaturedAsync(limit, ct);
+        var deptMap = await BuildDeptMapAsync(ct);
+        return items.Select(d => MapToDto(d, deptMap)).ToList();
+    }
+
     public async Task<IReadOnlyList<DoctorDto>> GetManagementAsync(CancellationToken ct = default)
     {
         var items = await _repo.GetManagementAsync(ct);
@@ -82,6 +89,7 @@ public class DoctorService : IDoctorService
             IsActive = request.IsActive,
             IsManagement = request.IsManagement,
             ManagementOrder = request.ManagementOrder,
+            IsHomepageFeatured = request.IsHomepageFeatured,
         };
         await _repo.AddAsync(doctor, ct);
         await _uow.SaveChangesAsync(ct);
@@ -104,6 +112,7 @@ public class DoctorService : IDoctorService
         doctor.IsActive = request.IsActive;
         doctor.IsManagement = request.IsManagement;
         doctor.ManagementOrder = request.ManagementOrder;
+        doctor.IsHomepageFeatured = request.IsHomepageFeatured;
 
         _repo.Update(doctor);
         await _uow.SaveChangesAsync(ct);
@@ -141,6 +150,7 @@ public class DoctorService : IDoctorService
         IsActive = d.IsActive,
         IsManagement = d.IsManagement,
         ManagementOrder = d.ManagementOrder,
+        IsHomepageFeatured = d.IsHomepageFeatured,
         CreatedAt = d.CreatedAt,
     };
 }

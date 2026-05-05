@@ -13,4 +13,5 @@ public class UpdateDoctorRequest
     public bool IsActive { get; set; }
     public bool IsManagement { get; set; }
     public int ManagementOrder { get; set; }
+    public bool IsHomepageFeatured { get; set; }
 }

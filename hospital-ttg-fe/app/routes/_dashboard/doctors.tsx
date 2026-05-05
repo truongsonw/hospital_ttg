@@ -49,6 +49,7 @@ const schema = z.object({
   isActive: z.boolean(),
   isManagement: z.boolean(),
   managementOrder: z.number().int(),
+  isHomepageFeatured: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -77,6 +78,7 @@ function DoctorForm({
       isActive: true,
       isManagement: false,
       managementOrder: 0,
+      isHomepageFeatured: false,
       ...defaultValues,
     },
   });
@@ -196,6 +198,24 @@ function DoctorForm({
             <Input type="number" placeholder="1 = Giám đốc, 2 = Phó GĐ..." {...register("managementOrder", { valueAsNumber: true })} />
           </div>
         )}
+      </div>
+
+      <Separator />
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Hiển thị ở trang chủ</p>
+          <p className="text-xs text-muted-foreground">
+            Bác sĩ sẽ xuất hiện trong section "Đội ngũ chuyên gia".
+          </p>
+        </div>
+        <Controller
+          name="isHomepageFeatured"
+          control={control}
+          render={({ field }) => (
+            <Switch checked={field.value} onCheckedChange={field.onChange} />
+          )}
+        />
       </div>
     </form>
   );
@@ -436,6 +456,7 @@ export default function DoctorsPage() {
                 isActive: editTarget.isActive,
                 isManagement: editTarget.isManagement,
                 managementOrder: editTarget.managementOrder,
+                isHomepageFeatured: editTarget.isHomepageFeatured,
               }}
               departments={departments}
               onSubmit={handleUpdate}

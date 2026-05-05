@@ -16,8 +16,10 @@ public class ContentConfiguration : IEntityTypeConfiguration<Content>
         builder.Property(x => x.Thumbnail).HasMaxLength(500);
         builder.Property(x => x.FileAttach).HasMaxLength(500);
         builder.Property(x => x.Tags).HasMaxLength(500);
+        builder.Property(x => x.PdfViewMode).HasMaxLength(50);
         builder.Property(x => x.Status).HasDefaultValue((byte)1);
         builder.Property(x => x.IsHot).HasDefaultValue(false);
+        builder.Property(x => x.IsHomepageFeatured).HasDefaultValue(false);
         builder.Property(x => x.ViewCount).HasDefaultValue(0);
 
         builder.HasIndex(x => x.Slug).IsUnique();
@@ -25,5 +27,6 @@ public class ContentConfiguration : IEntityTypeConfiguration<Content>
         builder.HasIndex(x => new { x.ContentType, x.Status });
         builder.HasIndex(x => x.PublishedAt);
         builder.HasIndex(x => new { x.IsHot, x.Status });
+        builder.HasIndex(x => new { x.IsHomepageFeatured, x.Status });
     }
 }

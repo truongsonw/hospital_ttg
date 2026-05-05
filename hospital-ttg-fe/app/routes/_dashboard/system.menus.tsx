@@ -122,10 +122,11 @@ function CreateMenuDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }}>
+    <>
       <Button onClick={() => setOpen(true)}>
         <Plus className="size-4 mr-1" /> Thêm menu
       </Button>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Thêm menu mới</DialogTitle>
@@ -161,7 +162,7 @@ function CreateMenuDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Thứ tự</Label>
-              <Input type="number" defaultValue={0} {...register("sortOrder")} />
+              <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
             </div>
             <div className="flex items-center gap-2 pt-6">
               <input type="checkbox" id="isActive" defaultChecked {...register("isActive")} className="size-4" />
@@ -175,7 +176,8 @@ function CreateMenuDialog({
           </div>
         </form>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -290,7 +292,7 @@ function EditMenuDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Thứ tự</Label>
-              <Input type="number" {...register("sortOrder")} />
+              <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 pt-6">

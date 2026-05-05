@@ -39,6 +39,16 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Entities.Doctor>> GetHomepageFeaturedAsync(int limit, CancellationToken ct)
+    {
+        return await DbSet
+            .Where(d => d.IsActive && d.IsHomepageFeatured)
+            .OrderBy(d => d.SortOrder)
+            .ThenBy(d => d.FullName)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Entities.Doctor>> GetManagementAsync(CancellationToken ct)
     {
         return await DbSet

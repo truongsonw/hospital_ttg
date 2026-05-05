@@ -21,4 +21,13 @@ public class DepartmentRepository : BaseRepository<Entities.Department>, IDepart
             .OrderBy(d => d.SortOrder).ThenBy(d => d.Name)
             .ToListAsync(ct);
     }
+
+    public async Task<IReadOnlyList<Entities.Department>> GetHomepageFeaturedAsync(int limit, CancellationToken ct)
+    {
+        return await DbSet
+            .Where(d => d.IsActive && d.IsHomepageFeatured)
+            .OrderBy(d => d.SortOrder).ThenBy(d => d.Name)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
 }

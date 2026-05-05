@@ -8,6 +8,7 @@ export interface DepartmentDto {
   parentId?: string | null;
   sortOrder: number;
   isActive: boolean;
+  isHomepageFeatured: boolean;
   createdAt: string;
 }
 
@@ -17,6 +18,7 @@ export interface CreateDepartmentRequest {
   parentId?: string | null;
   sortOrder: number;
   isActive: boolean;
+  isHomepageFeatured: boolean;
 }
 
 export interface UpdateDepartmentRequest {
@@ -25,6 +27,7 @@ export interface UpdateDepartmentRequest {
   parentId?: string | null;
   sortOrder: number;
   isActive: boolean;
+  isHomepageFeatured: boolean;
 }
 
 export interface DoctorDto {
@@ -41,6 +44,7 @@ export interface DoctorDto {
   isActive: boolean;
   isManagement: boolean;
   managementOrder: number;
+  isHomepageFeatured: boolean;
   createdAt: string;
 }
 
@@ -56,6 +60,7 @@ export interface CreateDoctorRequest {
   isActive: boolean;
   isManagement: boolean;
   managementOrder: number;
+  isHomepageFeatured: boolean;
 }
 
 export interface UpdateDoctorRequest {
@@ -70,6 +75,7 @@ export interface UpdateDoctorRequest {
   isActive: boolean;
   isManagement: boolean;
   managementOrder: number;
+  isHomepageFeatured: boolean;
 }
 
 export type DepartmentListResponse = ApiResponse<DepartmentDto[]>;

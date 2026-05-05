@@ -35,6 +35,7 @@ const schema = z.object({
   parentId: z.string().optional(),
   sortOrder: z.number().int(),
   isActive: z.boolean(),
+  isHomepageFeatured: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -61,6 +62,7 @@ function DepartmentForm({
       parentId: "",
       sortOrder: 0,
       isActive: true,
+      isHomepageFeatured: false,
       ...defaultValues,
     },
   });
@@ -108,6 +110,22 @@ function DepartmentForm({
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+        <div>
+          <Label className="cursor-pointer">Hiển thị ở trang chủ</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Khoa được chọn sẽ xuất hiện trong section "Chuyên khoa".
+          </p>
+        </div>
+        <Controller
+          name="isHomepageFeatured"
+          control={control}
+          render={({ field }) => (
+            <Switch checked={field.value} onCheckedChange={field.onChange} />
+          )}
+        />
       </div>
     </form>
   );
@@ -290,6 +308,7 @@ export default function DepartmentsPage() {
                 parentId: editTarget.parentId ?? "",
                 sortOrder: editTarget.sortOrder,
                 isActive: editTarget.isActive,
+                isHomepageFeatured: editTarget.isHomepageFeatured,
               }}
               allDepts={items}
               excludeId={editTarget.id}

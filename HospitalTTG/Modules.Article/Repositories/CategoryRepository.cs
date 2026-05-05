@@ -34,6 +34,13 @@ internal sealed class CategoryRepository : ICategoryRepository
     public async Task<IReadOnlyList<Category>> GetChildrenAsync(Guid parentId, CancellationToken ct = default)
         => await _dbSet.AsNoTracking().Where(x => x.ParentId == parentId).OrderBy(x => x.SortOrder).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Category>> GetHomepageFeaturedAsync(string? type, CancellationToken ct = default)
+    {
+        var query = _dbSet.AsNoTracking().Where(x => x.IsHomepageFeatured && x.IsActive);
+        if (!string.IsNullOrEmpty(type)) query = query.Where(x => x.Type == type);
+        return await query.OrderBy(x => x.SortOrder).ToListAsync(ct);
+    }
+
     public void Add(Category category) => _dbSet.Add(category);
     public void Update(Category category) => _dbSet.Update(category);
     public void Delete(Category category) => _dbSet.Remove(category);

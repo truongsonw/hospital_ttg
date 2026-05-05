@@ -8,6 +8,7 @@ public interface IDoctorService
     Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedAsync(
         Guid? departmentId, Guid? groupId, string? search, int page, int pageSize, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> GetFeaturedAsync(int limit = 4, CancellationToken ct = default);
+    Task<IReadOnlyList<DoctorDto>> GetHomepageFeaturedAsync(int limit, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> GetManagementAsync(CancellationToken ct = default);
     Task<DoctorDto> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<DoctorDto> CreateAsync(CreateDoctorRequest request, CancellationToken ct = default);

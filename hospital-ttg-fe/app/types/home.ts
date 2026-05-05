@@ -38,14 +38,27 @@ export interface HomePageContactDto {
   workingHours?: string | null;
 }
 
+export interface HomePageContentSectionDto {
+  categoryId: string;
+  categorySlug: string;
+  categoryType: string;
+  subtitle?: string | null;
+  title?: string | null;
+  description?: string | null;
+  buttonText?: string | null;
+  buttonUrl?: string | null;
+  sortOrder: number;
+  contents: ContentDto[];
+}
+
 export interface HomePageDto {
   heroSlides: HomePageSlideDto[];
   quickActions: HomePageQuickActionDto[];
+  departmentsSection: HomePageSectionDto;
   departments: DepartmentDto[];
-  featuredServicesSection: HomePageSectionDto;
-  featuredServices: ContentDto[];
-  featuredNewsSection: HomePageSectionDto;
-  featuredNews: ContentDto[];
+  departmentsImages: string[];
+  contentSections: HomePageContentSectionDto[];
+  featuredDoctorsSection: HomePageSectionDto;
   featuredDoctors: DoctorDto[];
   contact: HomePageContactDto;
 }

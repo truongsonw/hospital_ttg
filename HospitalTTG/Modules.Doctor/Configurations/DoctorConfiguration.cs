@@ -13,5 +13,6 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Entities.Doctor>
         builder.Property(d => d.Position).HasMaxLength(200);
         builder.Property(d => d.Specialty).HasMaxLength(200);
         builder.Property(d => d.AvatarUrl).HasMaxLength(500);
+        builder.Property(d => d.IsHomepageFeatured).HasDefaultValue(false);
     }
 }

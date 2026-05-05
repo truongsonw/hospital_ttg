@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { DoctorDto } from "~/types/doctor";
+import type { HomePageSectionDto } from "~/types/home";
 
 interface DoctorSliderProps {
+  section?: HomePageSectionDto;
   doctors?: DoctorDto[];
 }
 
-export default function DoctorSlider({ doctors = [] }: DoctorSliderProps) {
+export default function DoctorSlider({ section, doctors = [] }: DoctorSliderProps) {
   const [visible, setVisible] = useState(4);
   const [current, setCurrent] = useState(4);
   const [transition, setTransition] = useState(true);
@@ -66,22 +68,28 @@ export default function DoctorSlider({ doctors = [] }: DoctorSliderProps) {
     setCurrent(isLoopable ? visible : 0);
   }, [visible, isLoopable]);
 
+  const subtitle = section?.subtitle ?? "BÁC SĨ";
+  const title = section?.title ?? "Đội ngũ chuyên gia";
+  const description = section?.description ?? "Hơn 1.000 bác sĩ và hơn 4.300 nhân viên y tế tận tâm phục vụ.";
+  const buttonText = section?.buttonText ?? "Tìm bác sĩ";
+  const buttonUrl = section?.buttonUrl ?? "/doi-ngu-chuyen-gia";
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-12">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
         <div>
-          <p className="text-green-600 font-semibold text-sm uppercase">Bác sĩ</p>
-          <h2 className="text-3xl font-bold text-gray-900 mt-2">Đội ngũ chuyên gia</h2>
-          <p className="text-gray-600 mt-2 max-w-xl">
-            Hơn 1.000 bác sĩ và hơn 4.300 nhân viên y tế tận tâm phục vụ.
-          </p>
+          {subtitle && <p className="text-green-600 font-semibold text-sm uppercase">{subtitle}</p>}
+          {title && <h2 className="text-3xl font-bold text-gray-900 mt-2">{title}</h2>}
+          {description && <p className="text-gray-600 mt-2 max-w-xl">{description}</p>}
         </div>
-        <Link
-          to="/doi-ngu-chuyen-gia"
-          className="px-5 py-2 border border-green-600 text-green-600 rounded-full hover:bg-green-600 hover:text-white transition text-sm"
-        >
-          Tìm bác sĩ
-        </Link>
+        {buttonText && (
+          <Link
+            to={buttonUrl}
+            className="px-5 py-2 border border-green-600 text-green-600 rounded-full hover:bg-green-600 hover:text-white transition text-sm"
+          >
+            {buttonText}
+          </Link>
+        )}
       </div>
 
       {doctors.length === 0 ? (

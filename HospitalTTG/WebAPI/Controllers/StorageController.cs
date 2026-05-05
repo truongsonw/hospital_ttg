@@ -49,10 +49,28 @@ public class StorageController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Download(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Download(Guid id, bool inline = false, CancellationToken ct = default)
     {
         var (stream, contentType, fileName) = await _storageService.DownloadAsync(id, ct);
+
+        if (inline)
+        {
+            Response.Headers.Append("Content-Disposition", $"inline; filename=\"{Uri.EscapeDataString(fileName)}\"; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+            return File(stream, contentType);
+        }
+
         return File(stream, contentType, fileName);
+    }
+
+    [HttpGet("{id:guid}/view")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ViewInline(Guid id, CancellationToken ct)
+    {
+        var (stream, contentType, fileName) = await _storageService.DownloadAsync(id, ct);
+        Response.Headers.Append("Content-Disposition", $"inline; filename=\"{Uri.EscapeDataString(fileName)}\"; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+        return File(stream, contentType);
     }
 
     [HttpDelete("{id:guid}")]

@@ -14,8 +14,10 @@ public class ContentDto
     public string? Tags { get; set; }
     public byte Status { get; set; }
     public bool IsHot { get; set; }
+    public bool IsHomepageFeatured { get; set; }
     public int ViewCount { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public string? PdfViewMode { get; set; }
 }
 
 public class CreateContentRequest
@@ -31,7 +33,9 @@ public class CreateContentRequest
     public string? Tags { get; set; }
     public byte Status { get; set; } = 1;
     public bool IsHot { get; set; }
+    public bool IsHomepageFeatured { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public string? PdfViewMode { get; set; }
 }
 
 public class UpdateContentRequest
@@ -47,5 +51,7 @@ public class UpdateContentRequest
     public string? Tags { get; set; }
     public byte Status { get; set; }
     public bool IsHot { get; set; }
+    public bool IsHomepageFeatured { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public string? PdfViewMode { get; set; }
 }

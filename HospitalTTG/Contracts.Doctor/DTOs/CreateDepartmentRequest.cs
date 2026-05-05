@@ -7,4 +7,5 @@ public class CreateDepartmentRequest
     public Guid? ParentId { get; set; }
     public int SortOrder { get; set; } = 0;
     public bool IsActive { get; set; } = true;
+    public bool IsHomepageFeatured { get; set; } = false;
 }

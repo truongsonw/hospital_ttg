@@ -9,6 +9,8 @@ public interface IContentService
     Task<ContentDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<ContentDto?> GetBySlugAsync(string slug, CancellationToken ct = default);
     Task<PagedResponse<IReadOnlyList<ContentDto>>> GetHotAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<IReadOnlyList<ContentDto>> GetHomepageFeaturedAsync(string? type, IReadOnlyList<Guid>? categoryIds, int limit, CancellationToken ct = default);
+    Task<IReadOnlyList<ContentDto>> GetForHomepageCategoryAsync(Guid categoryId, int limit, CancellationToken ct = default);
     Task IncrementViewCountAsync(Guid id, CancellationToken ct = default);
     Task<ContentDto> CreateAsync(CreateContentRequest request, CancellationToken ct = default);
     Task<ContentDto> UpdateAsync(Guid id, UpdateContentRequest request, CancellationToken ct = default);

@@ -29,6 +29,12 @@ public class DepartmentService : IDepartmentService
         return items.Select(MapToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<DepartmentDto>> GetHomepageFeaturedAsync(int limit, CancellationToken ct = default)
+    {
+        var items = await _repo.GetHomepageFeaturedAsync(limit, ct);
+        return items.Select(MapToDto).ToList();
+    }
+
     public async Task<DepartmentDto> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         var dept = await _repo.GetByIdAsync(id, ct)
@@ -45,6 +51,7 @@ public class DepartmentService : IDepartmentService
             ParentId = request.ParentId,
             SortOrder = request.SortOrder,
             IsActive = request.IsActive,
+            IsHomepageFeatured = request.IsHomepageFeatured,
         };
         await _repo.AddAsync(dept, ct);
         await _uow.SaveChangesAsync(ct);
@@ -61,6 +68,7 @@ public class DepartmentService : IDepartmentService
         dept.ParentId = request.ParentId;
         dept.SortOrder = request.SortOrder;
         dept.IsActive = request.IsActive;
+        dept.IsHomepageFeatured = request.IsHomepageFeatured;
 
         _repo.Update(dept);
         await _uow.SaveChangesAsync(ct);
@@ -83,6 +91,7 @@ public class DepartmentService : IDepartmentService
         ParentId = d.ParentId,
         SortOrder = d.SortOrder,
         IsActive = d.IsActive,
+        IsHomepageFeatured = d.IsHomepageFeatured,
         CreatedAt = d.CreatedAt,
     };
 }

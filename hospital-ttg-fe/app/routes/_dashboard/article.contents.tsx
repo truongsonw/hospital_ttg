@@ -50,10 +50,12 @@ const schema = z.object({
   categoryId: z.string().min(1, "Bắt buộc"),
   status: z.number().int().min(0).max(1),
   isHot: z.boolean(),
+  isHomepageFeatured: z.boolean(),
   intro: z.string().optional(),
   body: z.string().optional(),
   thumbnail: z.string().optional(),
   fileAttach: z.string().optional(),
+  pdfViewMode: z.enum(["new-tab", "download"]).optional(),
   tags: z.string().optional(),
   publishedAt: z.string().optional(),
 });
@@ -67,10 +69,12 @@ const DEFAULT_VALUES: FormValues = {
   categoryId: "",
   status: 1,
   isHot: false,
+  isHomepageFeatured: false,
   intro: "",
   body: "",
   thumbnail: "",
   fileAttach: "",
+  pdfViewMode: undefined,
   tags: "",
   publishedAt: "",
 };
@@ -177,6 +181,24 @@ function ContentFormFields({
         </div>
       </div>
 
+      {/* PDF View Mode */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label>Hiển thị file PDF</Label>
+          <select
+            {...register("pdfViewMode")}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Không hiển thị</option>
+            <option value="new-tab">Mở trong tab mới</option>
+            <option value="download">Chỉ tải về</option>
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Chế độ hiển thị file PDF đính kèm cho người dùng
+          </p>
+        </div>
+      </div>
+
       {/* Tags & Ngày xuất bản */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -205,6 +227,16 @@ function ContentFormFields({
           <input type="checkbox" id={`${formId}-isHot`} {...register("isHot")} className="size-4" />
           <Label htmlFor={`${formId}-isHot`}>Nội dung nổi bật (Hot)</Label>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id={`${formId}-isHomepageFeatured`}
+          {...register("isHomepageFeatured")}
+          className="size-4"
+        />
+        <Label htmlFor={`${formId}-isHomepageFeatured`}>Hiển thị ở trang chủ</Label>
       </div>
 
       {/* Giới thiệu */}
@@ -273,6 +305,7 @@ function CreateDrawer({
         body: values.body || null,
         thumbnail: values.thumbnail || null,
         fileAttach: values.fileAttach || null,
+        pdfViewMode: values.pdfViewMode || null,
         tags: values.tags || null,
         publishedAt: values.publishedAt || null,
       });
@@ -346,10 +379,12 @@ function EditDrawer({
           categoryId: content.categoryId,
           status: content.status,
           isHot: content.isHot,
+          isHomepageFeatured: content.isHomepageFeatured,
           intro: content.intro ?? "",
           body: content.body ?? "",
           thumbnail: content.thumbnail ?? "",
           fileAttach: content.fileAttach ?? "",
+          pdfViewMode: content.pdfViewMode ?? undefined,
           tags: content.tags ?? "",
           publishedAt: content.publishedAt
             ? new Date(content.publishedAt).toISOString().slice(0, 16)
@@ -376,6 +411,7 @@ function EditDrawer({
         body: values.body || null,
         thumbnail: values.thumbnail || null,
         fileAttach: values.fileAttach || null,
+        pdfViewMode: values.pdfViewMode || null,
         tags: values.tags || null,
         publishedAt: values.publishedAt || null,
       });

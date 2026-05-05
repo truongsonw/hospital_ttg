@@ -6,8 +6,7 @@ import SpecialtySection from "../../components/home/SpecialtySection";
 import FeaturedServices from "../../components/home/FeaturedServices";
 import DoctorSection from "../../components/home/DoctorSection";
 import { getHomePage } from "~/services/homepage.service";
-import type { HomePageDto, HomePageSectionDto } from "~/types/home";
-import type { ContentDto } from "~/types/article";
+import type { HomePageContentSectionDto, HomePageDto } from "~/types/home";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,23 +18,23 @@ export function meta({}: Route.MetaArgs) {
 const emptyHomePage: HomePageDto = {
   heroSlides: [],
   quickActions: [],
-  departments: [],
-  featuredServicesSection: {
+  departmentsSection: {
     subtitle: "ĐƠN VỊ",
-    title: "Dịch vụ y khoa",
+    title: "Chuyên khoa",
     description: "Chăm sóc sức khỏe toàn diện cho gia đình bạn",
     buttonText: "Xem tất cả",
-    buttonUrl: "/tin-tuc?type=service",
+    buttonUrl: "/doi-ngu-chuyen-gia",
   },
-  featuredServices: [],
-  featuredNewsSection: {
-    subtitle: "TIN TỨC",
-    title: "Tin tức nổi bật",
-    description: "Cập nhật thông tin y tế và hoạt động mới nhất của bệnh viện",
-    buttonText: "Xem tất cả",
-    buttonUrl: "/tin-tuc",
+  departments: [],
+  departmentsImages: [],
+  contentSections: [],
+  featuredDoctorsSection: {
+    subtitle: "BÁC SĨ",
+    title: "Đội ngũ chuyên gia",
+    description: "Hơn 1.000 bác sĩ và hơn 4.300 nhân viên y tế tận tâm phục vụ.",
+    buttonText: "Tìm bác sĩ",
+    buttonUrl: "/doi-ngu-chuyen-gia",
   },
-  featuredNews: [],
   featuredDoctors: [],
   contact: {},
 };
@@ -59,15 +58,15 @@ export function HydrateFallback() {
   );
 }
 
-function mapSection(section: HomePageSectionDto, services: ContentDto[], emptyText: string) {
+function mapContentSection(section: HomePageContentSectionDto) {
   return {
     subtitle: section.subtitle ?? undefined,
     title: section.title ?? undefined,
     description: section.description ?? undefined,
     buttonText: section.buttonText ?? undefined,
     buttonHref: section.buttonUrl ?? undefined,
-    emptyText,
-    services: services.map((item) => ({
+    emptyText: "Chưa có nội dung hiển thị.",
+    services: section.contents.map((item) => ({
       title: item.title,
       image: item.thumbnail,
       href: item.slug ? `/tin-tuc/${item.slug}` : undefined,
@@ -79,16 +78,6 @@ function mapSection(section: HomePageSectionDto, services: ContentDto[], emptyTe
 
 export default function MainIndex() {
   const homePage = useLoaderData<typeof clientLoader>();
-  const featuredServicesData = mapSection(
-    homePage.featuredServicesSection,
-    homePage.featuredServices,
-    "Chưa có dịch vụ y khoa nổi bật.",
-  );
-  const featuredNewsData = mapSection(
-    homePage.featuredNewsSection,
-    homePage.featuredNews,
-    "Chưa có tin tức nổi bật.",
-  );
 
   return (
     <div className="home">
@@ -98,10 +87,18 @@ export default function MainIndex() {
           <QuickActionBar actions={homePage.quickActions} contact={homePage.contact} />
         </section>
         <div className="p-4">
-          <SpecialtySection departments={homePage.departments} />
-          <FeaturedServices data={featuredServicesData} />
-          <FeaturedServices data={featuredNewsData} />
-          <DoctorSection doctors={homePage.featuredDoctors} />
+          <SpecialtySection
+            section={homePage.departmentsSection}
+            departments={homePage.departments}
+            images={homePage.departmentsImages}
+          />
+          {homePage.contentSections.map((s) => (
+            <FeaturedServices key={s.categoryId} data={mapContentSection(s)} />
+          ))}
+          <DoctorSection
+            section={homePage.featuredDoctorsSection}
+            doctors={homePage.featuredDoctors}
+          />
         </div>
       </section>
     </div>

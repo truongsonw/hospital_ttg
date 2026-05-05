@@ -10,6 +10,12 @@ public class CategoryDto
     public string Lang { get; set; } = null!;
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
+    public bool IsHomepageFeatured { get; set; }
+    public string? HomepageSubtitle { get; set; }
+    public string? HomepageDescription { get; set; }
+    public string? HomepageButtonText { get; set; }
+    public string? HomepageButtonUrl { get; set; }
+    public int? HomepageLimit { get; set; }
 }
 
 public class CreateCategoryRequest
@@ -21,6 +27,12 @@ public class CreateCategoryRequest
     public string Lang { get; set; } = "vi";
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsHomepageFeatured { get; set; }
+    public string? HomepageSubtitle { get; set; }
+    public string? HomepageDescription { get; set; }
+    public string? HomepageButtonText { get; set; }
+    public string? HomepageButtonUrl { get; set; }
+    public int? HomepageLimit { get; set; }
 }
 
 public class UpdateCategoryRequest
@@ -32,4 +44,10 @@ public class UpdateCategoryRequest
     public string Lang { get; set; } = null!;
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
+    public bool IsHomepageFeatured { get; set; }
+    public string? HomepageSubtitle { get; set; }
+    public string? HomepageDescription { get; set; }
+    public string? HomepageButtonText { get; set; }
+    public string? HomepageButtonUrl { get; set; }
+    public int? HomepageLimit { get; set; }
 }

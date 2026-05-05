@@ -13,8 +13,10 @@ public class Content : AuditableEntity
     public string? Thumbnail { get; set; }
     public string? FileAttach { get; set; }
     public string? Tags { get; set; }
+    public string? PdfViewMode { get; set; }
     public byte Status { get; set; } = 1;
     public bool IsHot { get; set; }
+    public bool IsHomepageFeatured { get; set; }
     public int ViewCount { get; set; }
     public DateTime? PublishedAt { get; set; }
 }

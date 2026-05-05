@@ -215,19 +215,29 @@ export default function TinTucDetailPage() {
             )}
 
             {/* File attachment */}
-            {content.fileAttach && (
+            {content.fileAttach && content.pdfViewMode && (
               <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
                 <span className="text-2xl">📎</span>
                 <div>
                   <p className="text-sm font-medium text-gray-700">File đính kèm</p>
-                  <a
-                    href={content.fileAttach}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#008046] hover:underline"
-                  >
-                    Tải xuống
-                  </a>
+                  {content.pdfViewMode === 'new-tab' ? (
+                    <a
+                      href={content.fileAttach.replace('/download', '/view')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#008046] hover:underline flex items-center gap-1"
+                    >
+                      Xem file PDF →
+                    </a>
+                  ) : (
+                    <a
+                      href={content.fileAttach}
+                      download
+                      className="text-xs text-[#008046] hover:underline flex items-center gap-1"
+                    >
+                      Tải xuống ↓
+                    </a>
+                  )}
                 </div>
               </div>
             )}

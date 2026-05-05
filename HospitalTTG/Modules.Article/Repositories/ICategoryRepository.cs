@@ -8,6 +8,7 @@ internal interface ICategoryRepository
     Task<Category?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<Category?> GetBySlugAsync(string slug, CancellationToken ct = default);
     Task<IReadOnlyList<Category>> GetChildrenAsync(Guid parentId, CancellationToken ct = default);
+    Task<IReadOnlyList<Category>> GetHomepageFeaturedAsync(string? type, CancellationToken ct = default);
     void Add(Category category);
     void Update(Category category);
     void Delete(Category category);

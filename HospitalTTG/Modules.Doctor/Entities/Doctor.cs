@@ -15,4 +15,5 @@ public class Doctor : AuditableEntity
     public bool IsActive { get; set; } = true;
     public bool IsManagement { get; set; } = false;
     public int ManagementOrder { get; set; } = 0;
+    public bool IsHomepageFeatured { get; set; } = false;
 }

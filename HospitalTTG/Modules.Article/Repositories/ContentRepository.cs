@@ -42,6 +42,51 @@ internal sealed class ContentRepository : IContentRepository
         return (items, total);
     }
 
+    public async Task<IReadOnlyList<Content>> GetHomepageFeaturedAsync(
+        string? type,
+        IReadOnlyList<Guid>? categoryIds,
+        IReadOnlyList<Guid>? featuredCategoryIds,
+        int limit,
+        CancellationToken ct = default)
+    {
+        var query = _dbSet.AsNoTracking().Where(x => x.Status == 1);
+
+        if (!string.IsNullOrEmpty(type))
+            query = query.Where(x => x.ContentType == type);
+
+        var hasCategoryFilter = categoryIds is { Count: > 0 };
+        var hasFeaturedCategoryFilter = featuredCategoryIds is { Count: > 0 };
+
+        if (hasCategoryFilter)
+            query = query.Where(x => categoryIds!.Contains(x.CategoryId));
+
+        if (hasFeaturedCategoryFilter)
+        {
+            query = query.Where(x =>
+                x.IsHomepageFeatured ||
+                featuredCategoryIds!.Contains(x.CategoryId));
+        }
+        else
+        {
+            query = query.Where(x => x.IsHomepageFeatured);
+        }
+
+        return await query
+            .OrderByDescending(x => x.PublishedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<Content>> GetForHomepageCategoryAsync(Guid categoryId, int limit, CancellationToken ct = default)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(x => x.Status == 1 && x.CategoryId == categoryId)
+            .OrderByDescending(x => x.IsHomepageFeatured)
+            .ThenByDescending(x => x.PublishedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
+
     public async Task IncrementViewCountAsync(Guid id, CancellationToken ct = default)
         => await _dbSet.Where(x => x.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(e => e.ViewCount, e => e.ViewCount + 1), ct);

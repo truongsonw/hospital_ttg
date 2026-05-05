@@ -9,6 +9,7 @@ namespace Modules.System.Services;
 internal sealed class HomePageService : IHomePageService
 {
     private const string DefaultBannerImage = "/images/banner/Ngoai.png";
+    private const int DefaultSectionLimit = 4;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -17,62 +18,87 @@ internal sealed class HomePageService : IHomePageService
 
     private readonly ISiteSettingService _siteSettingService;
     private readonly IContentService _contentService;
+    private readonly ICategoryService _categoryService;
     private readonly IDepartmentService _departmentService;
     private readonly IDoctorService _doctorService;
 
     public HomePageService(
         ISiteSettingService siteSettingService,
         IContentService contentService,
+        ICategoryService categoryService,
         IDepartmentService departmentService,
         IDoctorService doctorService)
     {
         _siteSettingService = siteSettingService;
         _contentService = contentService;
+        _categoryService = categoryService;
         _departmentService = departmentService;
         _doctorService = doctorService;
     }
 
     public async Task<HomePageDto> GetAsync(CancellationToken ct = default)
     {
-        var settingsTask = _siteSettingService.GetAllAsync(ct);
-        var departmentsTask = _departmentService.GetAllAsync(true, ct);
-        var doctorsTask = _doctorService.GetFeaturedAsync(8, ct);
-        var newsTask = _contentService.GetHotAsync(1, 4, ct);
-        var servicesTask = _contentService.GetPagedAsync("service", null, 1, 1, 2, ct);
+        var settingsResult = await _siteSettingService.GetAllAsync(ct);
+        var settings = settingsResult.ToDictionary(x => x.Key, x => x.Value ?? string.Empty);
 
-        await Task.WhenAll(settingsTask, departmentsTask, doctorsTask, newsTask, servicesTask);
+        var departmentsLimit = ReadInt(settings, "homepage_departments_limit", 5);
+        var doctorsLimit = ReadInt(settings, "homepage_doctors_limit", 8);
+        var defaultSectionLimit = ReadInt(settings, "homepage_section_default_limit", DefaultSectionLimit);
 
-        var settings = settingsTask.Result.ToDictionary(x => x.Key, x => x.Value ?? string.Empty);
-        var departments = departmentsTask.Result
-            .OrderBy(x => x.SortOrder)
-            .ThenBy(x => x.Name)
-            .Take(5)
-            .ToList();
+        var departments = await _departmentService.GetHomepageFeaturedAsync(departmentsLimit, ct);
+        var doctors = await _doctorService.GetHomepageFeaturedAsync(doctorsLimit, ct);
+
+        var featuredCategories = await _categoryService.GetHomepageFeaturedAsync(null, ct);
+        var contentSections = new List<HomePageContentSectionDto>();
+
+        foreach (var cat in featuredCategories.OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
+        {
+            var limit = cat.HomepageLimit is > 0 ? cat.HomepageLimit.Value : defaultSectionLimit;
+            var contents = await _contentService.GetForHomepageCategoryAsync(cat.Id, limit, ct);
+
+            contentSections.Add(new HomePageContentSectionDto
+            {
+                CategoryId = cat.Id,
+                CategorySlug = cat.Slug,
+                CategoryType = cat.Type,
+                Subtitle = !string.IsNullOrWhiteSpace(cat.HomepageSubtitle)
+                    ? cat.HomepageSubtitle
+                    : cat.Type.ToUpperInvariant(),
+                Title = cat.Name,
+                Description = cat.HomepageDescription,
+                ButtonText = !string.IsNullOrWhiteSpace(cat.HomepageButtonText) ? cat.HomepageButtonText : "Xem tất cả",
+                ButtonUrl = !string.IsNullOrWhiteSpace(cat.HomepageButtonUrl)
+                    ? cat.HomepageButtonUrl
+                    : $"/tin-tuc?type={cat.Type}&categoryId={cat.Id}",
+                SortOrder = cat.SortOrder,
+                Contents = contents
+            });
+        }
 
         return new HomePageDto
         {
             HeroSlides = ResolveSlides(settings),
             QuickActions = ResolveQuickActions(settings),
+            DepartmentsSection = new HomePageSectionDto
+            {
+                Subtitle = GetSetting(settings, "homepage_departments_section_subtitle") ?? "ĐƠN VỊ",
+                Title = GetSetting(settings, "homepage_departments_section_title") ?? "Chuyên khoa",
+                Description = GetSetting(settings, "homepage_departments_section_description") ?? "Chăm sóc sức khỏe toàn diện cho gia đình bạn",
+                ButtonText = GetSetting(settings, "homepage_departments_section_button_text") ?? "Xem tất cả",
+                ButtonUrl = GetSetting(settings, "homepage_departments_section_button_url") ?? "/doi-ngu-chuyen-gia"
+            },
             Departments = departments,
-            FeaturedServicesSection = new HomePageSectionDto
+            DepartmentsImages = ReadJsonSetting<List<string>>(settings, "homepage_departments_images_json") ?? [],
+            ContentSections = contentSections,
+            FeaturedDoctorsSection = new HomePageSectionDto
             {
-                Subtitle = GetSetting(settings, "homepage_featured_services_subtitle") ?? "ĐƠN VỊ",
-                Title = GetSetting(settings, "homepage_featured_services_title") ?? "Dịch vụ y khoa",
-                Description = GetSetting(settings, "homepage_featured_services_description") ?? "Chăm sóc sức khỏe toàn diện cho gia đình bạn",
-                ButtonText = GetSetting(settings, "homepage_featured_services_button_text") ?? "Xem tất cả",
-                ButtonUrl = GetSetting(settings, "homepage_featured_services_button_url") ?? "/tin-tuc?type=service"
+                Subtitle = GetSetting(settings, "homepage_doctors_section_subtitle") ?? "BÁC SĨ",
+                Title = GetSetting(settings, "homepage_doctors_section_title") ?? "Đội ngũ chuyên gia",
+                Description = GetSetting(settings, "homepage_doctors_section_description") ?? "Hơn 1.000 bác sĩ và hơn 4.300 nhân viên y tế tận tâm phục vụ.",
+                ButtonText = GetSetting(settings, "homepage_doctors_section_button_text") ?? "Tìm bác sĩ",
+                ButtonUrl = GetSetting(settings, "homepage_doctors_section_button_url") ?? "/doi-ngu-chuyen-gia"
             },
-            FeaturedServices = servicesTask.Result.Data ?? [],
-            FeaturedNewsSection = new HomePageSectionDto
-            {
-                Subtitle = GetSetting(settings, "homepage_featured_news_subtitle") ?? "TIN TỨC",
-                Title = GetSetting(settings, "homepage_featured_news_title") ?? "Tin tức nổi bật",
-                Description = GetSetting(settings, "homepage_featured_news_description") ?? "Cập nhật thông tin y tế và hoạt động mới nhất của bệnh viện",
-                ButtonText = GetSetting(settings, "homepage_featured_news_button_text") ?? "Xem tất cả",
-                ButtonUrl = GetSetting(settings, "homepage_featured_news_button_url") ?? "/tin-tuc"
-            },
-            FeaturedNews = newsTask.Result.Data ?? [],
-            FeaturedDoctors = doctorsTask.Result,
+            FeaturedDoctors = doctors,
             Contact = new HomePageContactDto
             {
                 Hotline = GetSetting(settings, "hotline"),
@@ -170,6 +196,12 @@ internal sealed class HomePageService : IHomePageService
         {
             return default;
         }
+    }
+
+    private static int ReadInt(IReadOnlyDictionary<string, string> settings, string key, int fallback)
+    {
+        var value = GetSetting(settings, key);
+        return int.TryParse(value, out var parsed) && parsed > 0 ? parsed : fallback;
     }
 
     private static string? GetSetting(IReadOnlyDictionary<string, string> settings, string key)
