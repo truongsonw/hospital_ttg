@@ -41,6 +41,28 @@ public class DoctorService : IDoctorService
         return new PagedResponse<IReadOnlyList<DoctorDto>>(dtos, page, pageSize, total);
     }
 
+    public async Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedByDepartmentSlugAsync(
+        string departmentSlug, string? search, int page, int pageSize, CancellationToken ct = default)
+    {
+        var dept = await _deptRepo.GetBySlugAsync(departmentSlug, ct);
+        var deptId = dept?.Id;
+        var (items, total) = await _repo.GetPagedAsync(
+            deptId.HasValue ? [deptId.Value] : null, search, page, pageSize, ct);
+        var deptMap = await BuildDeptMapAsync(ct);
+        var dtos = items.Select(d => MapToDto(d, deptMap)).ToList();
+        return new PagedResponse<IReadOnlyList<DoctorDto>>(dtos, page, pageSize, total);
+    }
+
+    public async Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedByGroupSlugAsync(
+        string groupSlug, string? search, int page, int pageSize, CancellationToken ct = default)
+    {
+        var childIds = await _deptRepo.GetChildrenIdsByGroupSlugAsync(groupSlug, ct);
+        var (items, total) = await _repo.GetPagedAsync(childIds, search, page, pageSize, ct);
+        var deptMap = await BuildDeptMapAsync(ct);
+        var dtos = items.Select(d => MapToDto(d, deptMap)).ToList();
+        return new PagedResponse<IReadOnlyList<DoctorDto>>(dtos, page, pageSize, total);
+    }
+
     public async Task<IReadOnlyList<DoctorDto>> GetFeaturedAsync(int limit = 4, CancellationToken ct = default)
     {
         var items = await _repo.GetFeaturedAsync(limit, ct);
@@ -74,8 +96,23 @@ public class DoctorService : IDoctorService
         return MapToDto(doctor, null, deptName);
     }
 
+    public async Task<DoctorDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
+    {
+        var doctor = await _repo.GetBySlugAsync(slug, ct);
+        if (doctor == null) return null;
+
+        string? deptName = null;
+        if (doctor.DepartmentId.HasValue)
+            deptName = (await _deptRepo.GetByIdAsync(doctor.DepartmentId.Value, ct))?.Name;
+
+        return MapToDto(doctor, null, deptName);
+    }
+
     public async Task<DoctorDto> CreateAsync(CreateDoctorRequest request, CancellationToken ct = default)
     {
+        var slug = string.IsNullOrWhiteSpace(request.Slug)
+            ? GenerateSlug(request.FullName)
+            : request.Slug;
         var doctor = new Entities.Doctor
         {
             FullName = request.FullName,
@@ -90,6 +127,7 @@ public class DoctorService : IDoctorService
             IsManagement = request.IsManagement,
             ManagementOrder = request.ManagementOrder,
             IsHomepageFeatured = request.IsHomepageFeatured,
+            Slug = slug,
         };
         await _repo.AddAsync(doctor, ct);
         await _uow.SaveChangesAsync(ct);
@@ -113,6 +151,7 @@ public class DoctorService : IDoctorService
         doctor.IsManagement = request.IsManagement;
         doctor.ManagementOrder = request.ManagementOrder;
         doctor.IsHomepageFeatured = request.IsHomepageFeatured;
+        doctor.Slug = string.IsNullOrWhiteSpace(request.Slug) ? doctor.Slug : request.Slug;
 
         _repo.Update(doctor);
         await _uow.SaveChangesAsync(ct);
@@ -125,6 +164,13 @@ public class DoctorService : IDoctorService
             ?? throw new NotFoundException(nameof(Entities.Doctor), id);
         _repo.Delete(doctor);
         await _uow.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<DoctorDto>> SearchAsync(string search, int limit, CancellationToken ct = default)
+    {
+        var items = await _repo.SearchAsync(search, limit, ct);
+        var deptMap = await BuildDeptMapAsync(ct);
+        return items.Select(d => MapToDto(d, deptMap)).ToList();
     }
 
     private async Task<Dictionary<Guid, string>> BuildDeptMapAsync(CancellationToken ct)
@@ -152,5 +198,22 @@ public class DoctorService : IDoctorService
         ManagementOrder = d.ManagementOrder,
         IsHomepageFeatured = d.IsHomepageFeatured,
         CreatedAt = d.CreatedAt,
+        Slug = d.Slug,
     };
+
+    private static string GenerateSlug(string name)
+    {
+        var slug = name.ToLowerInvariant();
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[àáạảãâầấậẩẫăằắặẳẵ]", "a");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[èéẹẻẽêềếệểễ]", "e");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ìíịỉĩ]", "i");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[òóọỏõôồốộổỗơờớợởỡ]", "o");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ùúụủũưừứựửữ]", "u");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ỳýỵỷỹ]", "y");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[đ]", "d");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+        return slug.Trim('-');
+    }
 }

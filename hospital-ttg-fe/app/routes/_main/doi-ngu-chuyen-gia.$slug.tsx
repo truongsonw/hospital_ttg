@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ChevronRight } from "lucide-react";
-import type { Route } from "./+types/doi-ngu-chuyen-gia.$id";
-import { getDoctorById } from "~/services/doctor.service";
+import type { Route } from "./+types/doi-ngu-chuyen-gia.$slug";
+import { getDoctorBySlug } from "~/services/doctor.service";
 import type { DoctorDto } from "~/types/doctor";
 
 export function meta({ params }: Route.MetaArgs) {
@@ -12,18 +12,18 @@ export function meta({ params }: Route.MetaArgs) {
 }
 
 export default function DoctorDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [doctor, setDoctor] = useState<DoctorDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    getDoctorById(id)
+    if (!slug) return;
+    getDoctorBySlug(slug)
       .then(setDoctor)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (

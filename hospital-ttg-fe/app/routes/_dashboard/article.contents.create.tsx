@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { slugify } from '~/lib/utils';
 import { ApiError } from '~/lib/api';
 import { getAllCategoriesList } from '~/services/category.service';
 import { createContent } from '~/services/content.service';
@@ -49,6 +50,8 @@ export default function ArticleContentsCreatePage() {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -68,6 +71,12 @@ export default function ArticleContentsCreatePage() {
       publishedAt: '',
     },
   });
+
+  const titleValue = watch('title');
+
+  React.useEffect(() => {
+    setValue('slug', slugify(titleValue));
+  }, [titleValue, setValue]);
 
   React.useEffect(() => {
     getAllCategoriesList().then(setCategories).catch(() => {});
@@ -117,8 +126,11 @@ export default function ArticleContentsCreatePage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Slug *</Label>
-            <Input {...register('slug')} placeholder="VD: tin-tuc-suc-khoe-moi-nhat" />
+            <div className="flex items-center justify-between">
+              <Label>Slug</Label>
+              <span className="text-xs text-muted-foreground">Tự động tạo từ tiêu đề</span>
+            </div>
+            <Input {...register('slug')} placeholder="VD: tin-tuc-suc-khoe-moi-nhat" disabled />
             {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
           </div>
 

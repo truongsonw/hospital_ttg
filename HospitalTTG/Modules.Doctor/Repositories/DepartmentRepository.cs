@@ -30,4 +30,33 @@ public class DepartmentRepository : BaseRepository<Entities.Department>, IDepart
             .Take(limit)
             .ToListAsync(ct);
     }
+
+    public async Task<Entities.Department?> GetBySlugAsync(string slug, CancellationToken ct)
+    {
+        return await DbSet.FirstOrDefaultAsync(d => d.Slug == slug, ct);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetChildrenIdsByGroupSlugAsync(string groupSlug, CancellationToken ct)
+    {
+        var group = await DbSet.FirstOrDefaultAsync(d => d.Slug == groupSlug, ct);
+        if (group == null) return [];
+        var children = await DbSet
+            .Where(d => d.ParentId == group.Id)
+            .Select(d => d.Id)
+            .ToListAsync(ct);
+        return children;
+    }
+
+    public async Task<IReadOnlyList<Entities.Department>> SearchAsync(string search, int limit, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return [];
+
+        return await DbSet
+            .Where(d => d.IsActive && d.Name.Contains(search))
+            .OrderBy(d => d.SortOrder)
+            .ThenBy(d => d.Name)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
 }

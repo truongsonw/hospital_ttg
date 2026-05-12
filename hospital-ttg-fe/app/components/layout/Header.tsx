@@ -1,9 +1,12 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { Menu, X, ChevronDown, Search } from "lucide-react";
 import { useSiteSettings } from "~/context/site-settings.context";
 import { usePublicMenus } from "~/context/public-menus.context";
 import type { MenuDto } from "~/types/system";
+import { resolveFileUrl } from "~/lib/storage-url";
+import { getSearchSuggestions } from "~/services/search.service";
+import type { SearchSuggestItem } from "~/types/search";
 
 type HeaderMenuItem = {
   title: string;
@@ -45,6 +48,11 @@ function toHeaderItems(nodes: MenuDto[]): HeaderMenuItem[] {
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
   const [openSub, setOpenSub] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<SearchSuggestItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const s = useSiteSettings();
   const publicMenus = usePublicMenus();
 
@@ -54,8 +62,47 @@ export default function Header() {
   );
 
   const hotline = s["hotline"] || "0966101616";
-  const logoUrl = s["logo_url"] || "/images/logo/logo.jpg";
+  const logoUrl = resolveFileUrl(s["logo_url"]) || "/images/logo/logo.jpg";
   const siteName = s["site_name"] || "BỆNH VIỆN ĐA KHOA THẠCH THẤT";
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      getSearchSuggestions(searchQuery, 5)
+        .then(setSuggestions)
+        .catch(() => setSuggestions([]));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSuggestions(false);
+      setSearchQuery("");
+    }
+  };
+
+  const handleSuggestionClick = (url: string) => {
+    navigate(url);
+    setShowSuggestions(false);
+    setSearchQuery("");
+  };
 
   const toggleSubMenu = (index: number) => {
     setOpenSub(openSub === index ? null : index);
@@ -111,15 +158,55 @@ export default function Header() {
           </div>
 
           {/* SEARCH (Desktop only) */}
-          <div className="hidden lg:flex items-center">
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              className="border px-3 py-2 rounded-l-md focus:outline-none focus:border-green-600 h-10"
-            />
-            <button className="bg-green-600 text-white px-4 rounded-r-md hover:bg-green-700 transition h-10 flex items-center justify-center">
-              Tìm
-            </button>
+          <div className="hidden lg:flex items-center relative" ref={searchRef}>
+            <form onSubmit={handleSearchSubmit} className="flex">
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                className="border px-3 py-2 rounded-l-md focus:outline-none focus:border-green-600 h-10 w-52 transition"
+              />
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 rounded-r-md hover:bg-green-700 transition h-10 flex items-center justify-center cursor-pointer">
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
+
+            {/* Suggestions dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute right-0 top-full mt-1 w-[360px] bg-white shadow-xl border border-gray-100 rounded-xl z-50 overflow-hidden">
+                <ul>
+                  {suggestions.map((s, i) => (
+                    <li key={i}>
+                      <button
+                        onClick={() => handleSuggestionClick(s.url)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 text-left transition cursor-pointer"
+                      >
+                        <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{s.text}</p>
+                          <p className="text-xs text-green-600">{s.type}</p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t px-4 py-2">
+                  <button
+                    onClick={() => handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent)}
+                    className="w-full text-center text-xs text-green-600 hover:text-green-700 font-medium cursor-pointer"
+                  >
+                    Xem tất cả kết quả cho "{searchQuery}"
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* MOBILE BUTTON */}

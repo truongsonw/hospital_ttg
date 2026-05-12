@@ -8,6 +8,11 @@ export async function getAllDepartments(isActive?: boolean): Promise<DepartmentD
   return res.data;
 }
 
+export async function getDepartmentBySlug(slug: string): Promise<DepartmentDto> {
+  const res = await apiFetch<DepartmentDto>(`/api/departments/slug/${slug}`);
+  return res.data;
+}
+
 export async function createDepartment(req: CreateDepartmentRequest): Promise<DepartmentDto> {
   const res = await apiFetch<DepartmentDto>('/api/departments', {
     method: 'POST',

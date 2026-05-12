@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ApiError } from "~/lib/api";
+import { slugify } from "~/lib/utils";
 import {
   getPagedCategories,
   createCategory,
@@ -86,6 +87,7 @@ function CategoryForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -107,6 +109,15 @@ function CategoryForm({
     },
   });
 
+  const nameValue = watch("name");
+  const slugDefault = defaultValues?.slug ?? "";
+
+  React.useEffect(() => {
+    if (!slugDefault) {
+      setValue("slug", slugify(nameValue));
+    }
+  }, [nameValue, slugDefault, setValue]);
+
   async function onFormSubmit(values: FormValues) {
     setServerError(null);
     try {
@@ -125,7 +136,10 @@ function CategoryForm({
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label>Slug *</Label>
+          <div className="flex items-center justify-between">
+            <Label>Slug</Label>
+            <span className="text-xs text-muted-foreground">Tự động tạo từ tên</span>
+          </div>
           <Input {...register("slug")} placeholder="VD: tin-tuc" />
           {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
         </div>

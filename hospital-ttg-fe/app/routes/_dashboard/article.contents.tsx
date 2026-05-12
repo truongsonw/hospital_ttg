@@ -36,6 +36,7 @@ import type { CategoryDto, ContentDto, PagedApiResponse } from "~/types/article"
 import Pagination from "~/components/shared/Pagination";
 import TiptapEditor from "~/components/shared/TiptapEditor";
 import FileUploadInput from "~/components/shared/FileUploadInput";
+import { slugify } from "~/lib/utils";
 
 export function meta() {
   return [{ title: "Quản lý nội dung | Hospital TTG" }];
@@ -112,8 +113,8 @@ function ContentFormFields({
           {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label>Slug *</Label>
-          <Input {...register("slug")} placeholder="VD: tin-tuc-suc-khoe-moi-nhat" />
+          <Label>Slug</Label>
+          <Input {...register("slug")} placeholder="Tự động tạo từ tiêu đề" disabled />
           {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
         </div>
       </div>
@@ -287,8 +288,13 @@ function CreateDrawer({
 }) {
   const [serverError, setServerError] = React.useState<string | null>(null);
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, control, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULT_VALUES });
+
+  const titleValue = watch("title");
+  React.useEffect(() => {
+    setValue("slug", slugify(titleValue));
+  }, [titleValue, setValue]);
 
   function handleClose() {
     reset();
@@ -384,7 +390,7 @@ function EditDrawer({
           body: content.body ?? "",
           thumbnail: content.thumbnail ?? "",
           fileAttach: content.fileAttach ?? "",
-          pdfViewMode: content.pdfViewMode ?? undefined,
+          pdfViewMode: (content.pdfViewMode as "download" | "new-tab") ?? undefined,
           tags: content.tags ?? "",
           publishedAt: content.publishedAt
             ? new Date(content.publishedAt).toISOString().slice(0, 16)

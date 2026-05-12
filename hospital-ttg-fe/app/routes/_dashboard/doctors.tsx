@@ -30,6 +30,7 @@ import TiptapEditor from "~/components/shared/TiptapEditor";
 import { getPagedDoctors, createDoctor, updateDoctor, deleteDoctor } from "~/services/doctor.service";
 import { getAllDepartments } from "~/services/department.service";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
+import { slugify } from "~/lib/utils";
 
 export function meta() {
   return [{ title: "Quản lý bác sĩ | Hospital TTG" }];
@@ -39,6 +40,7 @@ const PAGE_SIZE = 10;
 
 const schema = z.object({
   fullName: z.string().min(1, "Vui lòng nhập họ tên").max(200),
+  slug: z.string().optional(),
   academicTitle: z.string().max(100).optional(),
   position: z.string().max(200).optional(),
   departmentId: z.string().optional(),
@@ -64,7 +66,7 @@ function DoctorForm({
   departments: DepartmentDto[];
   onSubmit: (values: FormValues) => Promise<void>;
 }) {
-  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       fullName: "",
@@ -85,6 +87,14 @@ function DoctorForm({
 
   const avatarUrl = watch("avatarUrl");
   const isManagement = watch("isManagement");
+  const fullNameValue = watch("fullName");
+  const slugDefault = defaultValues?.fullName ? slugify(defaultValues.fullName) : "";
+
+  React.useEffect(() => {
+    if (!slugDefault) {
+      setValue("slug", slugify(fullNameValue));
+    }
+  }, [fullNameValue, slugDefault, setValue]);
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -92,6 +102,14 @@ function DoctorForm({
         <Label>Họ và tên *</Label>
         <Input placeholder="Nguyễn Văn A" {...register("fullName")} />
         {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label>Slug</Label>
+          <span className="text-xs text-muted-foreground">Tự động tạo từ họ tên</span>
+        </div>
+        <Input {...register("slug")} disabled placeholder="duoc-tao-tu-ho-ten" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

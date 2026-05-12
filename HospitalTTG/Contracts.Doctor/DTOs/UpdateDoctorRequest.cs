@@ -14,4 +14,5 @@ public class UpdateDoctorRequest
     public bool IsManagement { get; set; }
     public int ManagementOrder { get; set; }
     public bool IsHomepageFeatured { get; set; }
+    public string Slug { get; set; } = string.Empty;
 }

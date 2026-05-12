@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/dialog";
 import { getAllDepartments, createDepartment, updateDepartment, deleteDepartment } from "~/services/department.service";
 import type { DepartmentDto } from "~/types/doctor";
+import { slugify } from "~/lib/utils";
 
 export function meta() {
   return [{ title: "Quản lý khoa | Hospital TTG" }];
@@ -31,6 +32,7 @@ export function meta() {
 
 const schema = z.object({
   name: z.string().min(1, "Vui lòng nhập tên khoa").max(200),
+  slug: z.string().optional(),
   description: z.string().max(1000).optional(),
   parentId: z.string().optional(),
   sortOrder: z.number().int(),
@@ -54,7 +56,7 @@ function DepartmentForm({
 }) {
   const topLevel = allDepts.filter((d) => !d.parentId && d.id !== excludeId);
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
@@ -67,12 +69,29 @@ function DepartmentForm({
     },
   });
 
+  const nameValue = watch("name");
+  const slugDefault = defaultValues?.name ? slugify(defaultValues.name) : "";
+
+  React.useEffect(() => {
+    if (!slugDefault) {
+      setValue("slug", slugify(nameValue));
+    }
+  }, [nameValue, slugDefault, setValue]);
+
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
         <Label>Tên khoa *</Label>
         <Input placeholder="VD: Khoa Nhi" {...register("name")} />
         {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label>Slug</Label>
+          <span className="text-xs text-muted-foreground">Tự động tạo từ tên</span>
+        </div>
+        <Input {...register("slug")} disabled placeholder="khoa-nhi" />
       </div>
 
       <div className="space-y-1.5">
@@ -167,7 +186,7 @@ export default function DepartmentsPage() {
     if (!editTarget) return;
     setEditSubmitting(true);
     try {
-      const result = await updateDepartment(editTarget.id, { ...values, parentId: values.parentId || null });
+      const result = await updateDepartment(editTarget.id, { ...values, slug: values.slug ?? "", parentId: values.parentId || null });
       toast.success("Cập nhật thành công.");
       setItems((prev) => prev.map((d) => (d.id === result.id ? result : d)));
       setEditTarget(null);
@@ -304,6 +323,7 @@ export default function DepartmentsPage() {
               formId="edit-dept-form"
               defaultValues={{
                 name: editTarget.name,
+                slug: editTarget.slug ?? "",
                 description: editTarget.description ?? "",
                 parentId: editTarget.parentId ?? "",
                 sortOrder: editTarget.sortOrder,

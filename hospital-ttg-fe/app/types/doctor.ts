@@ -4,6 +4,7 @@ import type { PagedApiResponse } from './article';
 export interface DepartmentDto {
   id: string;
   name: string;
+  slug: string;
   description?: string | null;
   parentId?: string | null;
   sortOrder: number;
@@ -14,6 +15,7 @@ export interface DepartmentDto {
 
 export interface CreateDepartmentRequest {
   name: string;
+  slug?: string;
   description?: string | null;
   parentId?: string | null;
   sortOrder: number;
@@ -23,6 +25,7 @@ export interface CreateDepartmentRequest {
 
 export interface UpdateDepartmentRequest {
   name: string;
+  slug: string;
   description?: string | null;
   parentId?: string | null;
   sortOrder: number;
@@ -33,6 +36,7 @@ export interface UpdateDepartmentRequest {
 export interface DoctorDto {
   id: string;
   fullName: string;
+  slug: string;
   academicTitle?: string | null;
   position?: string | null;
   departmentId?: string | null;
@@ -50,6 +54,7 @@ export interface DoctorDto {
 
 export interface CreateDoctorRequest {
   fullName: string;
+  slug?: string;
   academicTitle?: string | null;
   position?: string | null;
   departmentId?: string | null;

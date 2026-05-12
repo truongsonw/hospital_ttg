@@ -17,4 +17,5 @@ public class DoctorDto
     public int ManagementOrder { get; set; }
     public bool IsHomepageFeatured { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string Slug { get; set; } = string.Empty;
 }

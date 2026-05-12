@@ -23,6 +23,7 @@ import {
   upsertSiteSettings,
   settingsToMap,
 } from "~/services/site-settings.service";
+import { normaliseFileId } from "~/lib/storage-url";
 import type { SiteSettingDto } from "~/types/system";
 import type { HomePageQuickActionDto, HomePageSlideDto } from "~/types/home";
 
@@ -143,6 +144,16 @@ function parseJson<T>(value: string | undefined, fallback: T): T {
   }
 }
 
+/** Normalise image URLs in slide objects: Guid → Guid, legacy URL → Guid (extracted). */
+function normaliseSlides(slides: HomePageSlideDto[]): HomePageSlideDto[] {
+  return slides.map((s) => ({ ...s, imageUrl: normaliseFileId(s.imageUrl) ?? "" }));
+}
+
+/** Normalise image URLs in department image list. */
+function normaliseDepartmentImages(images: string[]): string[] {
+  return images.map((img) => normaliseFileId(img) ?? img).filter(Boolean);
+}
+
 function buildDefaults(): FormValues {
   const base = Object.fromEntries(PLAIN_KEYS.map((k) => [k, ""])) as Record<string, string>;
   return {
@@ -174,23 +185,22 @@ function SiteSettingsForm() {
     getAllSiteSettings()
       .then((settings) => {
         const map = settingsToMap(settings as SiteSettingDto[]);
-        const slides = parseJson<HomePageSlideDto[]>(map.homepage_slides_json, []);
+        const slides = normaliseSlides(parseJson<HomePageSlideDto[]>(map.homepage_slides_json, []));
         const quickActions = parseJson<HomePageQuickActionDto[]>(
           map.homepage_quick_actions_json,
           [],
         );
-        const departmentsImages = parseJson<string[]>(
-          map.homepage_departments_images_json,
-          [],
+        const departmentsImages = normaliseDepartmentImages(
+          parseJson<string[]>(map.homepage_departments_images_json, []),
         );
 
         const next: FormValues = {
           ...buildDefaults(),
           ...Object.fromEntries(PLAIN_KEYS.map((k) => [k, map[k] ?? ""])),
-          homepage_slides: slides,
+          homepage_slides: normaliseSlides(slides),
           homepage_quick_actions: quickActions,
-          homepage_departments_image_1: departmentsImages[0] ?? "",
-          homepage_departments_image_2: departmentsImages[1] ?? "",
+          homepage_departments_image_1: normaliseFileId(departmentsImages[0]) ?? "",
+          homepage_departments_image_2: normaliseFileId(departmentsImages[1]) ?? "",
         } as FormValues;
 
         reset(next);

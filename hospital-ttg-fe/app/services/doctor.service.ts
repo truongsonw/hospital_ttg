@@ -9,6 +9,8 @@ export async function getManagementDoctors(): Promise<DoctorDto[]> {
 export async function getPagedDoctors(params: {
   departmentId?: string;
   groupId?: string;
+  departmentSlug?: string;
+  groupSlug?: string;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -16,6 +18,8 @@ export async function getPagedDoctors(params: {
   const q = new URLSearchParams();
   if (params.departmentId) q.set('departmentId', params.departmentId);
   if (params.groupId) q.set('groupId', params.groupId);
+  if (params.departmentSlug) q.set('departmentSlug', params.departmentSlug);
+  if (params.groupSlug) q.set('groupSlug', params.groupSlug);
   if (params.search) q.set('search', params.search);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 12));
@@ -29,6 +33,11 @@ export async function getFeaturedDoctors(limit = 4): Promise<DoctorDto[]> {
 
 export async function getDoctorById(id: string): Promise<DoctorDto> {
   const res = await apiFetch<DoctorDto>(`/api/doctors/${id}`);
+  return res.data;
+}
+
+export async function getDoctorBySlug(slug: string): Promise<DoctorDto> {
+  const res = await apiFetch<DoctorDto>(`/api/doctors/slug/${slug}`);
   return res.data;
 }
 

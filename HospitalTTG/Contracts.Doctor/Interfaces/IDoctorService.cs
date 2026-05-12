@@ -7,11 +7,17 @@ public interface IDoctorService
 {
     Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedAsync(
         Guid? departmentId, Guid? groupId, string? search, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedByDepartmentSlugAsync(
+        string departmentSlug, string? search, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResponse<IReadOnlyList<DoctorDto>>> GetPagedByGroupSlugAsync(
+        string groupSlug, string? search, int page, int pageSize, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> GetFeaturedAsync(int limit = 4, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> GetHomepageFeaturedAsync(int limit, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> GetManagementAsync(CancellationToken ct = default);
     Task<DoctorDto> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<DoctorDto?> GetBySlugAsync(string slug, CancellationToken ct = default);
     Task<DoctorDto> CreateAsync(CreateDoctorRequest request, CancellationToken ct = default);
     Task<DoctorDto> UpdateAsync(Guid id, UpdateDoctorRequest request, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<DoctorDto>> SearchAsync(string search, int limit, CancellationToken ct = default);
 }

@@ -1,12 +1,13 @@
 import * as React from 'react';
-import { Trash2, Mail, Upload, X, Image, File } from "lucide-react";
+import { Trash2, Upload, X, Image, File } from "lucide-react";
 import { Button } from '~/components/ui/button';
-import { uploadFile, getFileDownloadUrl } from '~/services/storage.service';
+import { uploadFile } from '~/services/storage.service';
 import { ApiError } from '~/lib/api';
 
 interface Props {
+  /** The current value: a file Guid (new) or a full download URL (legacy). */
   value?: string;
-  onChange: (url: string) => void;
+  onChange: (fileId: string) => void;
   accept?: string;
   label?: string;
 }
@@ -16,6 +17,20 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
 function isImageUrl(url: string) {
   const lower = url.toLowerCase();
   return IMAGE_EXTENSIONS.some((ext) => lower.includes(ext));
+}
+
+/** Matches a valid storage Guid (new storage format) */
+const GUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DOWNLOAD_TEMPLATE = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5020'}/api/storage/{id}/download`;
+
+function resolvePreviewSrc(value: string | undefined): string {
+  if (!value) return '';
+  if (GUID_REGEX.test(value.trim())) {
+    return DOWNLOAD_TEMPLATE.replace('{id}', value.trim());
+  }
+  // Legacy full URL — use as-is for backward compat
+  return value;
 }
 
 export default function FileUploadInput({ value, onChange, accept = '*/*', label }: Props) {
@@ -30,8 +45,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
     setUploading(true);
     try {
       const dto = await uploadFile(file);
-      const url = getFileDownloadUrl(dto.id);
-      onChange(url);
+      onChange(dto.id); // store only the file Guid
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Upload thất bại');
     } finally {
@@ -64,7 +78,7 @@ export default function FileUploadInput({ value, onChange, accept = '*/*', label
         <div className="flex items-start gap-2">
           {isImage ? (
             <img
-              src={value}
+              src={resolvePreviewSrc(value)}
               alt="preview"
               className="h-14 w-20 rounded-md border object-cover bg-muted shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}

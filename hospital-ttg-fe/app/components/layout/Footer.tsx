@@ -12,12 +12,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useSiteSettings } from "~/context/site-settings.context";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 export default function Footer() {
   const s = useSiteSettings();
 
   const siteName = s["site_name"] || "BỆNH VIỆN ĐA KHOA THẠCH THẤT";
-  const logoUrl = s["logo_url"] || "/images/logo/logo.jpg";
+  const logoUrl = resolveFileUrl(s["logo_url"]) || "/images/logo/logo.jpg";
   const address = s["address"] || "";
   const phone = s["phone"] || "";
   const hotline = s["hotline"] || "";

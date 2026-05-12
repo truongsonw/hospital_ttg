@@ -16,7 +16,12 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
             query = query.Where(d => d.DepartmentId.HasValue && departmentIds.Contains(d.DepartmentId.Value));
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(d => d.FullName.Contains(search));
+        {
+            query = query.Where(d =>
+                d.FullName.Contains(search) ||
+                (d.Specialty != null && d.Specialty.Contains(search)) ||
+                (d.Position != null && d.Position.Contains(search)));
+        }
 
         var total = await query.CountAsync(ct);
         var items = await query
@@ -27,6 +32,21 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
             .ToListAsync(ct);
 
         return (items, total);
+    }
+
+    public async Task<IReadOnlyList<Entities.Doctor>> SearchAsync(string search, int limit, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return [];
+
+        return await DbSet
+            .Where(d => d.IsActive && (
+                d.FullName.Contains(search) ||
+                (d.Specialty != null && d.Specialty.Contains(search)) ||
+                (d.Position != null && d.Position.Contains(search))))
+            .OrderBy(d => d.FullName)
+            .Take(limit)
+            .ToListAsync(ct);
     }
 
     public async Task<IReadOnlyList<Entities.Doctor>> GetFeaturedAsync(int limit, CancellationToken ct)
@@ -56,5 +76,10 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
             .OrderBy(d => d.ManagementOrder)
             .ThenBy(d => d.FullName)
             .ToListAsync(ct);
+    }
+
+    public async Task<Entities.Doctor?> GetBySlugAsync(string slug, CancellationToken ct)
+    {
+        return await DbSet.AsNoTracking().FirstOrDefaultAsync(d => d.Slug == slug, ct);
     }
 }

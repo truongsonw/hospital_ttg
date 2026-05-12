@@ -75,7 +75,7 @@ export default function ManagementPage() {
 function DoctorCard({ doc, large = false }: { doc: DoctorDto; large?: boolean }) {
   return (
     <Link
-      to={`/doi-ngu-chuyen-gia/${doc.id}`}
+      to={`/doi-ngu-chuyen-gia/${doc.slug}`}
       className={`group block rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:border-green-200 transition ${large ? "w-56" : ""}`}
     >
       <div className={`w-full bg-gray-100 ${large ? "aspect-[3/4]" : "aspect-[3/4]"}`}>

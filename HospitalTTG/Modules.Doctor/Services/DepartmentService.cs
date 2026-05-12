@@ -42,11 +42,21 @@ public class DepartmentService : IDepartmentService
         return MapToDto(dept);
     }
 
+    public async Task<DepartmentDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
+    {
+        var dept = await _repo.GetBySlugAsync(slug, ct);
+        return dept == null ? null : MapToDto(dept);
+    }
+
     public async Task<DepartmentDto> CreateAsync(CreateDepartmentRequest request, CancellationToken ct = default)
     {
+        var slug = string.IsNullOrWhiteSpace(request.Slug)
+            ? GenerateSlug(request.Name)
+            : request.Slug;
         var dept = new Entities.Department
         {
             Name = request.Name,
+            Slug = slug,
             Description = request.Description,
             ParentId = request.ParentId,
             SortOrder = request.SortOrder,
@@ -64,6 +74,7 @@ public class DepartmentService : IDepartmentService
             ?? throw new NotFoundException(nameof(Entities.Department), id);
 
         dept.Name = request.Name;
+        dept.Slug = string.IsNullOrWhiteSpace(request.Slug) ? dept.Slug : request.Slug;
         dept.Description = request.Description;
         dept.ParentId = request.ParentId;
         dept.SortOrder = request.SortOrder;
@@ -83,10 +94,17 @@ public class DepartmentService : IDepartmentService
         await _uow.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<DepartmentDto>> SearchAsync(string search, int limit, CancellationToken ct = default)
+    {
+        var items = await _repo.SearchAsync(search, limit, ct);
+        return items.Select(MapToDto).ToList();
+    }
+
     private static DepartmentDto MapToDto(Entities.Department d) => new()
     {
         Id = d.Id,
         Name = d.Name,
+        Slug = d.Slug,
         Description = d.Description,
         ParentId = d.ParentId,
         SortOrder = d.SortOrder,
@@ -94,4 +112,20 @@ public class DepartmentService : IDepartmentService
         IsHomepageFeatured = d.IsHomepageFeatured,
         CreatedAt = d.CreatedAt,
     };
+
+    private static string GenerateSlug(string name)
+    {
+        var slug = name.ToLowerInvariant();
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[àáạảãâầấậẩẫăằắặẳẵ]", "a");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[èéẹẻẽêềếệểễ]", "e");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ìíịỉĩ]", "i");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[òóọỏõôồốộổỗơờớợởỡ]", "o");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ùúụủũưừứựửữ]", "u");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[ỳýỵỷỹ]", "y");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[đ]", "d");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+        return slug.Trim('-');
+    }
 }

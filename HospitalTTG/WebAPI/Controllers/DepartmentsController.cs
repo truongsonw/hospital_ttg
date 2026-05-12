@@ -33,6 +33,17 @@ public class DepartmentsController : ControllerBase
         return Ok(new ApiResponse<DepartmentDto>(result));
     }
 
+    [HttpGet("slug/{slug}")]
+    [ProducesResponseType(typeof(ApiResponse<DepartmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> GetBySlug(string slug, CancellationToken ct)
+    {
+        var result = await _service.GetBySlugAsync(slug, ct);
+        if (result == null)
+            return NotFound(new ProblemDetails { Title = "Department not found", Detail = $"No department found with slug: {slug}" });
+        return Ok(new ApiResponse<DepartmentDto>(result));
+    }
+
     [HttpPost]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<DepartmentDto>), StatusCodes.Status201Created)]

@@ -231,6 +231,7 @@ function DepartmentsPanel() {
     try {
       await updateDepartment(item.id, {
         name: item.name,
+        slug: item.slug ?? "",
         description: item.description ?? null,
         parentId: item.parentId ?? null,
         sortOrder: item.sortOrder,

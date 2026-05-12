@@ -9,6 +9,7 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Entities.Departm
     {
         builder.ToTable("Departments");
         builder.Property(d => d.Name).HasMaxLength(200).IsRequired();
+        builder.Property(d => d.Slug).HasMaxLength(500).IsRequired();
         builder.Property(d => d.Description);
         builder.Property(d => d.IsHomepageFeatured).HasDefaultValue(false);
     }

@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
 import type { DepartmentDto } from "~/types/doctor";
 import type { HomePageSectionDto } from "~/types/home";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 interface SpecialtySectionProps {
   section?: HomePageSectionDto;
@@ -24,8 +25,8 @@ export default function SpecialtySection({
   const buttonText = section?.buttonText ?? "Xem tất cả";
   const buttonUrl = section?.buttonUrl ?? "#";
 
-  const primaryImage = images[0];
-  const secondaryImage = images[1];
+  const primaryImage = images[0] ? resolveFileUrl(images[0]) : undefined;
+  const secondaryImage = images[1] ? resolveFileUrl(images[1]) : undefined;
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

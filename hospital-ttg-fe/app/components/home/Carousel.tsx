@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomePageSlideDto } from "~/types/home";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 const fallbackSlides: HomePageSlideDto[] = [
   {
@@ -117,7 +118,7 @@ export default function Carousel({ slides: inputSlides = fallbackSlides }: Carou
             className="relative w-full flex-shrink-0 select-none
               h-[200px] sm:h-[300px] md:h-[420px] lg:h-[520px] xl:h-[620px]">
             <img
-              src={slide.imageUrl}
+              src={resolveFileUrl(slide.imageUrl)}
               alt={slide.altText || slide.title || `Slide ${index + 1}`}
               className="object-cover w-full h-full pointer-events-none"
             />

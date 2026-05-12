@@ -15,7 +15,7 @@ export function meta({}: Route.MetaArgs) {
 
 const PAGE_SIZE = 12;
 
-type FilterType = { type: "all" } | { type: "group"; id: string } | { type: "dept"; id: string };
+type FilterType = { type: "all" } | { type: "group"; slug: string } | { type: "dept"; slug: string };
 
 function DeptFilter({
   departments,
@@ -37,8 +37,8 @@ function DeptFilter({
 
   const isActive = (f: FilterType) => {
     if (filter.type === "all" && f.type === "all") return true;
-    if (filter.type === "group" && f.type === "group") return filter.id === f.id;
-    if (filter.type === "dept" && f.type === "dept") return filter.id === f.id;
+    if (filter.type === "group" && f.type === "group") return filter.slug === f.slug;
+    if (filter.type === "dept" && f.type === "dept") return filter.slug === f.slug;
     return false;
   };
 
@@ -60,13 +60,13 @@ function DeptFilter({
       {groups.map((group) => {
         const children = getChildren(group.id);
         const open = expanded[group.id] ?? true;
-        const groupActive = filter.type === "group" && filter.id === group.id;
+        const groupActive = filter.type === "group" && filter.slug === group.slug;
 
         return (
           <div key={group.id}>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => onChange({ type: "group", id: group.id })}
+                onClick={() => onChange({ type: "group", slug: group.slug })}
                 className={`${btnBase} flex-1 font-semibold ${groupActive ? btnActive : btnInactive}`}
               >
                 {group.name}
@@ -83,8 +83,8 @@ function DeptFilter({
                 {children.map((child) => (
                   <button
                     key={child.id}
-                    onClick={() => onChange({ type: "dept", id: child.id })}
-                    className={`${btnBase} ${isActive({ type: "dept", id: child.id }) ? btnActive : btnInactive}`}
+                    onClick={() => onChange({ type: "dept", slug: child.slug })}
+                    className={`${btnBase} ${isActive({ type: "dept", slug: child.slug }) ? btnActive : btnInactive}`}
                   >
                     {child.name}
                   </button>
@@ -99,8 +99,8 @@ function DeptFilter({
       {standalone.map((d) => (
         <button
           key={d.id}
-          onClick={() => onChange({ type: "dept", id: d.id })}
-          className={`${btnBase} ${isActive({ type: "dept", id: d.id }) ? btnActive : btnInactive}`}
+          onClick={() => onChange({ type: "dept", slug: d.slug })}
+          className={`${btnBase} ${isActive({ type: "dept", slug: d.slug }) ? btnActive : btnInactive}`}
         >
           {d.name}
         </button>
@@ -127,8 +127,8 @@ export default function DoctorListPage() {
         page,
         pageSize: PAGE_SIZE,
       };
-      if (filter.type === "group") params.groupId = filter.id;
-      if (filter.type === "dept") params.departmentId = filter.id;
+      if (filter.type === "group") params.groupSlug = filter.slug;
+      if (filter.type === "dept") params.departmentSlug = filter.slug;
 
       const res = await getPagedDoctors(params);
       setDoctors(res.data ?? []);
@@ -201,7 +201,7 @@ export default function DoctorListPage() {
                 {doctors.map((doc) => (
                   <Link
                     key={doc.id}
-                    to={`/doi-ngu-chuyen-gia/${doc.id}`}
+                    to={`/doi-ngu-chuyen-gia/${doc.slug}`}
                     className="group rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:border-green-200 transition"
                   >
                     <div className="relative w-full aspect-[3/4] bg-gray-100">

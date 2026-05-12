@@ -124,7 +124,7 @@ export default function DoctorSlider({ section, doctors = [] }: DoctorSliderProp
             {sliderData.map((doc, i) => (
               <div key={i} style={{ width: `${slideWidth}%` }} className="px-3 shrink-0">
                 <Link
-                  to={`/doi-ngu-chuyen-gia/${doc.id}`}
+                  to={`/doi-ngu-chuyen-gia/${doc.slug}`}
                   className="block bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
                   <div className="relative w-full h-[320px]">

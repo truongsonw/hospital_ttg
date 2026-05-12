@@ -20,12 +20,26 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<PagedResponse<IReadOnlyList<DoctorDto>>>> GetPaged(
         [FromQuery] Guid? departmentId,
         [FromQuery] Guid? groupId,
+        [FromQuery] string? departmentSlug,
+        [FromQuery] string? groupSlug,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12,
         CancellationToken ct = default)
     {
-        var result = await _service.GetPagedAsync(departmentId, groupId, search, page, pageSize, ct);
+        PagedResponse<IReadOnlyList<DoctorDto>> result;
+        if (!string.IsNullOrWhiteSpace(departmentSlug))
+        {
+            result = await _service.GetPagedByDepartmentSlugAsync(departmentSlug, search, page, pageSize, ct);
+        }
+        else if (!string.IsNullOrWhiteSpace(groupSlug))
+        {
+            result = await _service.GetPagedByGroupSlugAsync(groupSlug, search, page, pageSize, ct);
+        }
+        else
+        {
+            result = await _service.GetPagedAsync(departmentId, groupId, search, page, pageSize, ct);
+        }
         return Ok(result);
     }
 
@@ -52,6 +66,17 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<ApiResponse<DoctorDto>>> GetById(Guid id, CancellationToken ct)
     {
         var result = await _service.GetByIdAsync(id, ct);
+        return Ok(new ApiResponse<DoctorDto>(result));
+    }
+
+    [HttpGet("slug/{slug}")]
+    [ProducesResponseType(typeof(ApiResponse<DoctorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<DoctorDto>>> GetBySlug(string slug, CancellationToken ct)
+    {
+        var result = await _service.GetBySlugAsync(slug, ct);
+        if (result == null)
+            return NotFound(new ProblemDetails { Title = "Doctor not found", Detail = $"No doctor found with slug: {slug}" });
         return Ok(new ApiResponse<DoctorDto>(result));
     }
 
