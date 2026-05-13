@@ -12,6 +12,9 @@ public class StoredFileConfiguration : IEntityTypeConfiguration<StoredFile>
 
         builder.HasKey(f => f.Id);
 
+        builder.Property(f => f.Id)
+            .ValueGeneratedOnAdd();
+
         builder.Property(f => f.StoredFileName)
             .IsRequired()
             .HasMaxLength(200);
