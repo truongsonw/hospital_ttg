@@ -3,19 +3,7 @@
 
 import * as React from "react"
 import {
-  Camera,
-  BarChart3,
-  LayoutDashboard,
-  Sparkles,
-  FileText,
-  Folder,
-  HelpCircle,
   BookOpen,
-  List,
-  FileBarChart,
-  Search,
-  Settings,
-  Users,
   Menu,
   LayoutGrid,
   Grid3X3,
@@ -24,13 +12,11 @@ import {
   Mail,
   Stethoscope,
   Building2,
-  User,
   Globe,
 } from "lucide-react"
 import { Link } from "react-router"
 
 import { NavMain } from "~/components/nav-main"
-import { NavSecondary } from "~/components/nav-secondary"
 import { NavUser } from "~/components/nav-user"
 import {
   Sidebar,
@@ -52,16 +38,16 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-    {
-      title: "Bảng điều khiển",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "Báo cáo thống kê",
-      url: "#",
-      icon: BarChart3,
-    },
+    // {
+    //   title: "Bảng điều khiển",
+    //   url: "/dashboard",
+    //   icon: LayoutDashboard,
+    // },
+    // {
+    //   title: "Báo cáo thống kê",
+    //   url: "#",
+    //   icon: BarChart3,
+    // },
   ],
   navSystem: [
     {
@@ -117,26 +103,26 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Tài khoản",
-      url: "/dashboard/settings/account",
-      icon: User,
-    },
-    {
-      title: "Thông tin website",
-      url: "/dashboard/settings/website",
-      icon: Globe,
-    },
-    {
-      title: "Hỗ trợ",
-      url: "#",
-      icon: HelpCircle,
-    },
-    {
-      title: "Tìm kiếm",
-      url: "#",
-      icon: Search,
-    },
+    // {
+    //   title: "Tài khoản",
+    //   url: "/dashboard/settings/account",
+    //   icon: User,
+    // },
+    // {
+    //   title: "Thông tin website",
+    //   url: "/dashboard/settings/website",
+    //   icon: Globe,
+    // },
+    // {
+    //   title: "Hỗ trợ",
+    //   url: "#",
+    //   icon: HelpCircle,
+    // },
+    // {
+    //   title: "Tìm kiếm",
+    //   url: "#",
+    //   icon: Search,
+    // },
   ],
 }
 
@@ -223,8 +209,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

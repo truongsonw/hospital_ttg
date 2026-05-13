@@ -4,6 +4,8 @@ import {
   MoreVertical,
   LogOut,
   User,
+  Settings,
+  Globe,
 } from "lucide-react"
 import { useNavigate } from "react-router"
 import { Avatar, AvatarFallback } from "~/components/ui/avatar"
@@ -43,6 +45,10 @@ export function NavUser() {
   async function handleLogout() {
     await logout()
     navigate("/login", { replace: true })
+  }
+
+  function navigateTo(url: string) {
+    navigate(url)
   }
 
   return (
@@ -96,9 +102,13 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/account")}>
                 <User />
-                {user.role}
+                Tài khoản
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/website")}>
+                <Globe />
+                Thông tin website
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
