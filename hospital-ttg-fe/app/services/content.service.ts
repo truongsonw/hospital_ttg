@@ -3,14 +3,14 @@ import type { ContentDto, CreateContentRequest, PagedApiResponse, UpdateContentR
 
 export async function getPagedContents(params: {
   type?: string;
-  categoryId?: string;
+  categorySlug?: string;
   status?: string;
   page?: number;
   pageSize?: number;
 }): Promise<PagedApiResponse<ContentDto[]>> {
   const q = new URLSearchParams();
   if (params.type) q.set('type', params.type);
-  if (params.categoryId) q.set('categoryId', params.categoryId);
+  if (params.categorySlug) q.set('categorySlug', params.categorySlug);
   if (params.status !== '' && params.status !== undefined) q.set('status', params.status);
   q.set('page', String(params.page ?? 1));
   q.set('pageSize', String(params.pageSize ?? 10));

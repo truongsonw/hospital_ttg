@@ -6,6 +6,7 @@ namespace Contracts.Article.Interfaces;
 public interface IContentService
 {
     Task<PagedResponse<IReadOnlyList<ContentDto>>> GetPagedAsync(string? type, Guid? categoryId, byte? status, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResponse<IReadOnlyList<ContentDto>>> GetPagedAsync(string? type, string? categorySlug, byte? status, int page, int pageSize, CancellationToken ct = default);
     Task<ContentDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<ContentDto?> GetBySlugAsync(string slug, CancellationToken ct = default);
     Task<PagedResponse<IReadOnlyList<ContentDto>>> GetHotAsync(int page, int pageSize, CancellationToken ct = default);

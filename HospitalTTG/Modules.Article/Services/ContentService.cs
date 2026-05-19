@@ -28,6 +28,13 @@ internal sealed class ContentService : IContentService
         return new PagedResponse<IReadOnlyList<ContentDto>>(items.Select(MapToDto).ToList(), page, pageSize, total);
     }
 
+    public async Task<PagedResponse<IReadOnlyList<ContentDto>>> GetPagedAsync(
+        string? type, string? categorySlug, byte? status, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _repository.GetPagedAsync(type, categorySlug, status, page, pageSize, ct);
+        return new PagedResponse<IReadOnlyList<ContentDto>>(items.Select(MapToDto).ToList(), page, pageSize, total);
+    }
+
     public async Task<ContentDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         var entity = await _repository.GetByIdAsync(id, ct);

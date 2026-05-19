@@ -19,13 +19,19 @@ public class ContentsController : ControllerBase
     public async Task<IActionResult> GetPaged(
         [FromQuery] string? type,
         [FromQuery] Guid? categoryId,
+        [FromQuery] string? categorySlug,
         [FromQuery] byte? status,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken ct = default)
     {
-        var result = await _service.GetPagedAsync(type, categoryId, status, page, pageSize, ct);
-        return Ok(result);
+        if (!string.IsNullOrEmpty(categorySlug))
+        {
+            var result = await _service.GetPagedAsync(type, categorySlug, status, page, pageSize, ct);
+            return Ok(result);
+        }
+        var resultById = await _service.GetPagedAsync(type, categoryId, status, page, pageSize, ct);
+        return Ok(resultById);
     }
 
     [HttpGet("hot")]

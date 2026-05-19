@@ -1,14 +1,9 @@
 import * as React from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
-import { Switch } from "~/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "~/components/ui/select";
@@ -24,220 +19,18 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "~/components/ui/dialog";
-import { Separator } from "~/components/ui/separator";
 import Pagination from "~/components/shared/Pagination";
-import TiptapEditor from "~/components/shared/TiptapEditor";
 import { getPagedDoctors, createDoctor, updateDoctor, deleteDoctor } from "~/services/doctor.service";
 import { getAllDepartments } from "~/services/department.service";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
-import { slugify } from "~/lib/utils";
+import { DoctorForm } from "./DoctorForm";
+import type { FormValues } from "./DoctorForm";
 
 export function meta() {
   return [{ title: "Quản lý bác sĩ | Hospital TTG" }];
 }
 
 const PAGE_SIZE = 10;
-
-const schema = z.object({
-  fullName: z.string().min(1, "Vui lòng nhập họ tên").max(200),
-  slug: z.string().optional(),
-  academicTitle: z.string().max(100).optional(),
-  position: z.string().max(200).optional(),
-  departmentId: z.string().optional(),
-  specialty: z.string().max(200).optional(),
-  avatarUrl: z.string().max(500).optional(),
-  bio: z.string().optional(),
-  sortOrder: z.number().int(),
-  isActive: z.boolean(),
-  isManagement: z.boolean(),
-  managementOrder: z.number().int(),
-  isHomepageFeatured: z.boolean(),
-});
-type FormValues = z.infer<typeof schema>;
-
-function DoctorForm({
-  formId,
-  defaultValues,
-  departments,
-  onSubmit,
-}: {
-  formId: string;
-  defaultValues?: Partial<FormValues>;
-  departments: DepartmentDto[];
-  onSubmit: (values: FormValues) => Promise<void>;
-}) {
-  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      fullName: "",
-      academicTitle: "",
-      position: "",
-      departmentId: "",
-      specialty: "",
-      avatarUrl: "",
-      bio: "",
-      sortOrder: 0,
-      isActive: true,
-      isManagement: false,
-      managementOrder: 0,
-      isHomepageFeatured: false,
-      ...defaultValues,
-    },
-  });
-
-  const avatarUrl = watch("avatarUrl");
-  const isManagement = watch("isManagement");
-  const fullNameValue = watch("fullName");
-  const slugDefault = defaultValues?.fullName ? slugify(defaultValues.fullName) : "";
-
-  React.useEffect(() => {
-    if (!slugDefault) {
-      setValue("slug", slugify(fullNameValue));
-    }
-  }, [fullNameValue, slugDefault, setValue]);
-
-  return (
-    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label>Họ và tên *</Label>
-        <Input placeholder="Nguyễn Văn A" {...register("fullName")} />
-        {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
-      </div>
-
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label>Slug</Label>
-          <span className="text-xs text-muted-foreground">Tự động tạo từ họ tên</span>
-        </div>
-        <Input {...register("slug")} disabled placeholder="duoc-tao-tu-ho-ten" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Học hàm / Học vị</Label>
-          <Input placeholder="PGS.TS., BSCK II..." {...register("academicTitle")} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Chức vụ</Label>
-          <Input placeholder="Trưởng khoa" {...register("position")} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Khoa</Label>
-          <Controller
-            name="departmentId"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn khoa..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">— Không chọn —</SelectItem>
-                  {departments.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Chuyên khoa</Label>
-          <Input placeholder="Nhi khoa, Ngoại tiêu hóa..." {...register("specialty")} />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>URL ảnh đại diện</Label>
-        <Input placeholder="https://..." {...register("avatarUrl")} />
-        {avatarUrl && (
-          <img src={avatarUrl} alt="preview" className="h-16 w-16 rounded-full object-cover mt-1" />
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Giới thiệu</Label>
-        <Controller
-          name="bio"
-          control={control}
-          render={({ field }) => (
-            <TiptapEditor
-              value={field.value ?? ""}
-              onChange={field.onChange}
-              placeholder="Giới thiệu ngắn về bác sĩ..."
-              minHeight={160}
-            />
-          )}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Thứ tự hiển thị</Label>
-          <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Hiển thị</Label>
-          <div className="flex items-center h-10">
-            <Controller
-              name="isActive"
-              control={control}
-              render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      <div className="space-y-3">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ban lãnh đạo</p>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Thuộc ban lãnh đạo</p>
-            <p className="text-xs text-muted-foreground">Hiển thị trong trang Bộ máy quản lý</p>
-          </div>
-          <Controller
-            name="isManagement"
-            control={control}
-            render={({ field }) => (
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
-            )}
-          />
-        </div>
-        {isManagement && (
-          <div className="space-y-1.5">
-            <Label>Thứ tự trong BLĐ</Label>
-            <Input type="number" placeholder="1 = Giám đốc, 2 = Phó GĐ..." {...register("managementOrder", { valueAsNumber: true })} />
-          </div>
-        )}
-      </div>
-
-      <Separator />
-
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium">Hiển thị ở trang chủ</p>
-          <p className="text-xs text-muted-foreground">
-            Bác sĩ sẽ xuất hiện trong section "Đội ngũ chuyên gia".
-          </p>
-        </div>
-        <Controller
-          name="isHomepageFeatured"
-          control={control}
-          render={({ field }) => (
-            <Switch checked={field.value} onCheckedChange={field.onChange} />
-          )}
-        />
-      </div>
-    </form>
-  );
-}
 
 export default function DoctorsPage() {
   const [items, setItems] = React.useState<DoctorDto[]>([]);
@@ -461,6 +254,7 @@ export default function DoctorsPage() {
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {editTarget && (
             <DoctorForm
+              key={editTarget.id}
               formId="edit-doctor-form"
               defaultValues={{
                 fullName: editTarget.fullName,

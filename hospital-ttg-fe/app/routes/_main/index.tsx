@@ -64,7 +64,7 @@ function mapContentSection(section: HomePageContentSectionDto) {
     title: section.title ?? undefined,
     description: section.description ?? undefined,
     buttonText: section.buttonText ?? undefined,
-    buttonHref: section.buttonUrl ?? undefined,
+    buttonHref: section.buttonUrl ?? `/danh-muc-tin-tuc/${section.categorySlug}`,
     emptyText: "Chưa có nội dung hiển thị.",
     services: section.contents.map((item) => ({
       title: item.title,
@@ -93,7 +93,7 @@ export default function MainIndex() {
             images={homePage.departmentsImages}
           />
           {homePage.contentSections.map((s) => (
-            <FeaturedServices key={s.categoryId} data={mapContentSection(s)} />
+            <FeaturedServices key={s.categorySlug} data={mapContentSection(s)} />
           ))}
           <DoctorSection
             section={homePage.featuredDoctorsSection}

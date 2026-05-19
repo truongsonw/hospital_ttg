@@ -14,6 +14,7 @@ export default [
     route("search", "routes/_main/search.tsx"), // Route: /search
     route("tin-tuc", "routes/_main/tin-tuc.tsx"), // Route: /tin-tuc
     route("tin-tuc/:slug", "routes/_main/tin-tuc.$slug.tsx"), // Route: /tin-tuc/:slug
+    route("danh-muc-tin-tuc/:slug", "routes/_main/danh-muc-tin-tuc.$slug.tsx"), // Route: /danh-muc-tin-tuc/:slug
     route("doi-ngu-chuyen-gia", "routes/_main/doi-ngu-chuyen-gia.tsx"), // Route: /doi-ngu-chuyen-gia
     route("doi-ngu-chuyen-gia/:slug", "routes/_main/doi-ngu-chuyen-gia.$slug.tsx"), // Route: /doi-ngu-chuyen-gia/:slug
     route("ban-lanh-dao", "routes/_main/ban-lanh-dao.tsx"), // Route: /ban-lanh-dao

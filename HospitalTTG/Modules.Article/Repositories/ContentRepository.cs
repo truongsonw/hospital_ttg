@@ -7,10 +7,12 @@ namespace Modules.Article.Repositories;
 internal sealed class ContentRepository : IContentRepository
 {
     private readonly DbSet<Content> _dbSet;
+    private readonly DbSet<Category> _categoryDbSet;
 
     public ContentRepository(AppDbContext context)
     {
         _dbSet = context.Set<Content>();
+        _categoryDbSet = context.Set<Category>();
     }
 
     public async Task<(IReadOnlyList<Content> Items, int Total)> GetPagedAsync(
@@ -24,6 +26,21 @@ internal sealed class ContentRepository : IContentRepository
         var total = await query.CountAsync(ct);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return (items, total);
+    }
+
+    public async Task<(IReadOnlyList<Content> Items, int Total)> GetPagedAsync(
+        string? type, string? categorySlug, byte? status, int page, int pageSize, CancellationToken ct = default)
+    {
+        Guid? categoryId = null;
+        if (!string.IsNullOrEmpty(categorySlug))
+        {
+            var category = await _categoryDbSet.AsNoTracking()
+                .Where(x => x.Slug == categorySlug)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefaultAsync(ct);
+            categoryId = category;
+        }
+        return await GetPagedAsync(type, categoryId, status, page, pageSize, ct);
     }
 
     public async Task<Content?> GetByIdAsync(Guid id, CancellationToken ct = default)
