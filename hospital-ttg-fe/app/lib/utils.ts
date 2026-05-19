@@ -7,11 +7,13 @@ export function cn(...inputs: ClassValue[]) {
 
 export function slugify(text: string): string {
   return text
+    .replace(/[đĐ]/g, 'd')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9\s_-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
 }

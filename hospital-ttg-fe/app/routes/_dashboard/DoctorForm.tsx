@@ -7,6 +7,7 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { NativeSelect, NativeSelectOption } from "~/components/ui/native-select";
 import { Separator } from "~/components/ui/separator";
+import FileUploadInput from "~/components/shared/FileUploadInput";
 import TiptapEditor from "~/components/shared/TiptapEditor";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
 import { slugify } from "~/lib/utils";
@@ -58,17 +59,15 @@ export function DoctorForm({
     },
   });
 
-  const avatarUrl = watch("avatarUrl");
   const isManagement = watch("isManagement");
   const fullNameValue = watch("fullName");
   const departmentId = watch("departmentId");
-  const slugDefault = defaultValues?.fullName ? slugify(defaultValues.fullName) : "";
 
   React.useEffect(() => {
-    if (!slugDefault) {
-      setValue("slug", slugify(fullNameValue));
-    }
-  }, [fullNameValue, slugDefault, setValue]);
+    setValue("slug", slugify(fullNameValue), {
+      shouldDirty: true,
+    });
+  }, [fullNameValue, setValue]);
 
   const effectiveDepartments = React.useMemo(() => {
     if (!departmentId) return departments;
@@ -108,7 +107,13 @@ export function DoctorForm({
           <Label>Slug</Label>
           <span className="text-xs text-muted-foreground">Tự động tạo từ họ tên</span>
         </div>
-        <Input {...register("slug")} disabled placeholder="duoc-tao-tu-ho-ten" />
+        <Input
+          {...register("slug")}
+          readOnly
+          aria-readonly="true"
+          placeholder="duoc-tao-tu-ho-ten"
+          className="bg-muted text-muted-foreground"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -150,11 +155,19 @@ export function DoctorForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>URL ảnh đại diện</Label>
-        <Input placeholder="https://..." {...register("avatarUrl")} />
-        {avatarUrl && (
-          <img src={avatarUrl} alt="preview" className="h-16 w-16 rounded-full object-cover mt-1" />
-        )}
+        <Label>Ảnh đại diện</Label>
+        <Controller
+          name="avatarUrl"
+          control={control}
+          render={({ field }) => (
+            <FileUploadInput
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              accept="image/*"
+              label="ảnh đại diện"
+            />
+          )}
+        />
       </div>
 
       <div className="space-y-1.5">

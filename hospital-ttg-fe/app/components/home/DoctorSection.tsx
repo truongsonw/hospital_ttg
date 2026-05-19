@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { DoctorDto } from "~/types/doctor";
 import type { HomePageSectionDto } from "~/types/home";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 interface DoctorSliderProps {
   section?: HomePageSectionDto;
@@ -129,7 +130,7 @@ export default function DoctorSlider({ section, doctors = [] }: DoctorSliderProp
                 >
                   <div className="relative w-full h-[320px]">
                     {doc.avatarUrl ? (
-                      <img src={doc.avatarUrl} alt={doc.fullName} className="object-cover w-full h-full" />
+                      <img src={resolveFileUrl(doc.avatarUrl)} alt={doc.fullName} className="object-cover w-full h-full" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">👤</div>
                     )}

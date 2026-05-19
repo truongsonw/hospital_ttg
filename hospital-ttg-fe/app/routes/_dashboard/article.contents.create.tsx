@@ -75,7 +75,9 @@ export default function ArticleContentsCreatePage() {
   const titleValue = watch('title');
 
   React.useEffect(() => {
-    setValue('slug', slugify(titleValue));
+    setValue('slug', slugify(titleValue), {
+      shouldDirty: true,
+    });
   }, [titleValue, setValue]);
 
   React.useEffect(() => {
@@ -130,7 +132,13 @@ export default function ArticleContentsCreatePage() {
               <Label>Slug</Label>
               <span className="text-xs text-muted-foreground">Tự động tạo từ tiêu đề</span>
             </div>
-            <Input {...register('slug')} placeholder="VD: tin-tuc-suc-khoe-moi-nhat" disabled />
+            <Input
+              {...register('slug')}
+              placeholder="VD: tin-tuc-suc-khoe-moi-nhat"
+              readOnly
+              aria-readonly="true"
+              className="bg-muted text-muted-foreground"
+            />
             {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
           </div>
 

@@ -25,6 +25,7 @@ import { getAllDepartments } from "~/services/department.service";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
 import { DoctorForm } from "./DoctorForm";
 import type { FormValues } from "./DoctorForm";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 export function meta() {
   return [{ title: "Quản lý bác sĩ | Hospital TTG" }];
@@ -191,7 +192,7 @@ export default function DoctorsPage() {
                 <TableRow key={doc.id}>
                   <TableCell>
                     {doc.avatarUrl
-                      ? <img src={doc.avatarUrl} alt={doc.fullName} className="h-10 w-10 rounded-full object-cover" />
+                      ? <img src={resolveFileUrl(doc.avatarUrl)} alt={doc.fullName} className="h-10 w-10 rounded-full object-cover" />
                       : <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-gray-400 text-xs">?</div>
                     }
                   </TableCell>

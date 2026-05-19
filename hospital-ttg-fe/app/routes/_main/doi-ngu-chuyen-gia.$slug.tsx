@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import type { Route } from "./+types/doi-ngu-chuyen-gia.$slug";
 import { getDoctorBySlug } from "~/services/doctor.service";
 import type { DoctorDto } from "~/types/doctor";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -65,7 +66,7 @@ export default function DoctorDetailPage() {
               <div className="aspect-[3/4] bg-gray-100">
                 {doctor.avatarUrl ? (
                   <img
-                    src={doctor.avatarUrl}
+                    src={resolveFileUrl(doctor.avatarUrl)}
                     alt={doctor.fullName}
                     className="w-full h-full object-cover"
                   />

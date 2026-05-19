@@ -110,13 +110,12 @@ function CategoryForm({
   });
 
   const nameValue = watch("name");
-  const slugDefault = defaultValues?.slug ?? "";
 
   React.useEffect(() => {
-    if (!slugDefault) {
-      setValue("slug", slugify(nameValue));
-    }
-  }, [nameValue, slugDefault, setValue]);
+    setValue("slug", slugify(nameValue), {
+      shouldDirty: true,
+    });
+  }, [nameValue, setValue]);
 
   async function onFormSubmit(values: FormValues) {
     setServerError(null);

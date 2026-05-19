@@ -114,7 +114,13 @@ function ContentFormFields({
         </div>
         <div className="space-y-1.5">
           <Label>Slug</Label>
-          <Input {...register("slug")} placeholder="Tự động tạo từ tiêu đề" disabled />
+          <Input
+            {...register("slug")}
+            placeholder="Tự động tạo từ tiêu đề"
+            readOnly
+            aria-readonly="true"
+            className="bg-muted text-muted-foreground"
+          />
           {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
         </div>
       </div>
@@ -293,7 +299,9 @@ function CreateDrawer({
 
   const titleValue = watch("title");
   React.useEffect(() => {
-    setValue("slug", slugify(titleValue));
+    setValue("slug", slugify(titleValue), {
+      shouldDirty: true,
+    });
   }, [titleValue, setValue]);
 
   function handleClose() {
@@ -369,8 +377,16 @@ function EditDrawer({
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [loadingContent, setLoadingContent] = React.useState(false);
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, control, reset, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULT_VALUES });
+
+  const titleValue = watch("title");
+  React.useEffect(() => {
+    if (!open) return;
+    setValue("slug", slugify(titleValue), {
+      shouldDirty: true,
+    });
+  }, [titleValue, open, setValue]);
 
   React.useEffect(() => {
     if (!contentId || !open) return;

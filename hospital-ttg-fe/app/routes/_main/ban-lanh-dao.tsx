@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/ban-lanh-dao";
 import { getManagementDoctors } from "~/services/doctor.service";
 import type { DoctorDto } from "~/types/doctor";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -81,7 +82,7 @@ function DoctorCard({ doc, large = false }: { doc: DoctorDto; large?: boolean })
       <div className={`w-full bg-gray-100 ${large ? "aspect-[3/4]" : "aspect-[3/4]"}`}>
         {doc.avatarUrl ? (
           <img
-            src={doc.avatarUrl}
+            src={resolveFileUrl(doc.avatarUrl)}
             alt={doc.fullName}
             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
           />

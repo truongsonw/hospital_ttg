@@ -5,6 +5,7 @@ import type { Route } from "./+types/doi-ngu-chuyen-gia";
 import { getPagedDoctors } from "~/services/doctor.service";
 import { getAllDepartments } from "~/services/department.service";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
+import { resolveFileUrl } from "~/lib/storage-url";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -206,7 +207,7 @@ export default function DoctorListPage() {
                   >
                     <div className="relative w-full aspect-[3/4] bg-gray-100">
                       {doc.avatarUrl ? (
-                        <img src={doc.avatarUrl} alt={doc.fullName} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        <img src={resolveFileUrl(doc.avatarUrl)} alt={doc.fullName} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">👤</div>
                       )}

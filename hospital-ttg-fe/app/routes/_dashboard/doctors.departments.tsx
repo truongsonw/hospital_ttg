@@ -70,13 +70,12 @@ function DepartmentForm({
   });
 
   const nameValue = watch("name");
-  const slugDefault = defaultValues?.name ? slugify(defaultValues.name) : "";
 
   React.useEffect(() => {
-    if (!slugDefault) {
-      setValue("slug", slugify(nameValue));
-    }
-  }, [nameValue, slugDefault, setValue]);
+    setValue("slug", slugify(nameValue), {
+      shouldDirty: true,
+    });
+  }, [nameValue, setValue]);
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -91,7 +90,13 @@ function DepartmentForm({
           <Label>Slug</Label>
           <span className="text-xs text-muted-foreground">Tự động tạo từ tên</span>
         </div>
-        <Input {...register("slug")} disabled placeholder="khoa-nhi" />
+        <Input
+          {...register("slug")}
+          readOnly
+          aria-readonly="true"
+          placeholder="khoa-nhi"
+          className="bg-muted text-muted-foreground"
+        />
       </div>
 
       <div className="space-y-1.5">
