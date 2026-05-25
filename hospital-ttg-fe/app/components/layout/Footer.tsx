@@ -178,11 +178,11 @@ export default function Footer() {
               </Link>
 
               <Link
-                to="/tin-tuc"
+                to="/chuyen-khoa"
                 className="flex items-center justify-between border border-white/30 rounded-lg px-4 py-3 hover:bg-green-600 transition group">
                 <div className="flex items-center gap-3">
                   <Search className="text-yellow-400 w-5 h-5" />
-                  <span className="font-medium">Tin tức hoạt động</span>
+                  <span className="font-medium">Chuyên khoa</span>
                 </div>
                 <ArrowRight className="text-yellow-400 w-5 h-5 group-hover:translate-x-1 transition" />
               </Link>
@@ -193,7 +193,7 @@ export default function Footer() {
           <div>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/about" className="hover:text-yellow-400 transition flex items-center gap-2">
+                <Link to="/gioi-thieu-chung" className="hover:text-yellow-400 transition flex items-center gap-2">
                   <ChevronRight className="text-xs w-4 h-4 shrink-0" />
                   Giới thiệu bệnh viện
                 </Link>
@@ -211,9 +211,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/tin-tuc" className="hover:text-yellow-400 transition flex items-center gap-2">
+                <Link to="/doi-ngu-chuyen-gia" className="hover:text-yellow-400 transition flex items-center gap-2">
                   <ChevronRight className="text-xs w-4 h-4 shrink-0" />
-                  Tin tức bệnh viện
+                  Chuyên khoa
                 </Link>
               </li>
               <li>

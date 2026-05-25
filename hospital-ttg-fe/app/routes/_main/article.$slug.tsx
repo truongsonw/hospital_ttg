@@ -23,7 +23,7 @@ function formatDate(d: string | null) {
 function RelatedCard({ item }: { item: ContentDto }) {
   return (
     <Link
-      to={`/tin-tuc/${item.slug}`}
+      to={`/${item.slug}.html`}
       className="group flex gap-3 items-start py-3 border-b border-gray-100 last:border-0"
     >
       <div className="shrink-0 w-20 h-16 rounded-lg overflow-hidden bg-gray-100">
@@ -47,7 +47,7 @@ function RelatedCard({ item }: { item: ContentDto }) {
   );
 }
 
-export default function TinTucDetailPage() {
+export default function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
   const [content, setContent] = React.useState<ContentDto | null>(null);
   const [related, setRelated] = React.useState<ContentDto[]>([]);
@@ -115,16 +115,17 @@ export default function TinTucDetailPage() {
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">Không tìm thấy bài viết</h2>
         <p className="text-gray-500 mb-6">Bài viết có thể đã bị xóa hoặc đường dẫn không đúng.</p>
         <Link
-          to="/tin-tuc"
+          to="/"
           className="inline-block bg-[#008046] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-green-700 transition"
         >
-          Quay lại danh sách tin tức
+          Quay lại trang chủ
         </Link>
       </div>
     );
   }
 
   const categoryName = categoryMap[content.categoryId] ?? "";
+  const categorySlug = categories.find((c) => c.id === content.categoryId)?.slug;
   const tags = content.tags ? content.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
 
   return (
@@ -135,8 +136,12 @@ export default function TinTucDetailPage() {
           <nav className="flex items-center gap-2 text-green-200 text-sm flex-wrap">
             <Link to="/" className="hover:text-white transition">Trang chủ</Link>
             <ChevronRight className="size-3.5 shrink-0" />
-            <Link to="/tin-tuc" className="hover:text-white transition">Tin tức</Link>
-            <ChevronRight className="size-3.5 shrink-0" />
+            {categorySlug && (
+              <>
+                <Link to={`/${categorySlug}`} className="hover:text-white transition">{categoryName}</Link>
+                <ChevronRight className="size-3.5 shrink-0" />
+              </>
+            )}
             <span className="text-white line-clamp-1">{content.title}</span>
           </nav>
         </div>
@@ -205,7 +210,7 @@ export default function TinTucDetailPage() {
                 {tags.map((tag) => (
                   <Link
                     key={tag}
-                    to={`/tin-tuc?tags=${encodeURIComponent(tag)}`}
+                    to={`/search?tags=${encodeURIComponent(tag)}`}
                     className="text-xs bg-gray-100 hover:bg-green-100 hover:text-[#008046] text-gray-600 px-3 py-1 rounded-full transition"
                   >
                     {tag}
@@ -244,12 +249,21 @@ export default function TinTucDetailPage() {
 
             {/* Back link */}
             <div className="mt-10">
-              <Link
-                to="/tin-tuc"
-                className="inline-flex items-center gap-2 text-sm text-[#008046] hover:text-green-700 font-medium transition"
-              >
-                ← Quay lại danh sách tin tức
-              </Link>
+              {categorySlug ? (
+                <Link
+                  to={`/${categorySlug}`}
+                  className="inline-flex items-center gap-2 text-sm text-[#008046] hover:text-green-700 font-medium transition"
+                >
+                  ← Quay lại {categoryName}
+                </Link>
+              ) : (
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 text-sm text-[#008046] hover:text-green-700 font-medium transition"
+                >
+                  ← Quay lại trang chủ
+                </Link>
+              )}
             </div>
           </article>
 

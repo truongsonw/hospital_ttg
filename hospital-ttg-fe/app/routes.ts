@@ -9,15 +9,18 @@ export default [
   // 2. Nhóm Web bình thường (Dành cho bệnh nhân hoặc người truy cập ngoài)
   layout("routes/_main/layout.tsx", [
     index("routes/_main/index.tsx"), // Route: /
-    route("about", "routes/_main/about.tsx"), // Route: /about
+    route("gioi-thieu-chung", "routes/_main/about.tsx"), // Route: /gioi-thieu-chung
     route("contact", "routes/_main/contact.tsx"), // Route: /contact
     route("search", "routes/_main/search.tsx"), // Route: /search
-    route("tin-tuc", "routes/_main/tin-tuc.tsx"), // Route: /tin-tuc
-    route("tin-tuc/:slug", "routes/_main/tin-tuc.$slug.tsx"), // Route: /tin-tuc/:slug
-    route("danh-muc-tin-tuc/:slug", "routes/_main/danh-muc-tin-tuc.$slug.tsx"), // Route: /danh-muc-tin-tuc/:slug
     route("doi-ngu-chuyen-gia", "routes/_main/doi-ngu-chuyen-gia.tsx"), // Route: /doi-ngu-chuyen-gia
     route("doi-ngu-chuyen-gia/:slug", "routes/_main/doi-ngu-chuyen-gia.$slug.tsx"), // Route: /doi-ngu-chuyen-gia/:slug
+    route("chuyen-khoa", "routes/_main/chuyen-khoa.tsx"), // Route: /chuyen-khoa
+    route("chuyen-khoa/:slug", "routes/_main/chuyen-khoa.$slug.tsx"), // Route: /chuyen-khoa/:slug
     route("ban-lanh-dao", "routes/_main/ban-lanh-dao.tsx"), // Route: /ban-lanh-dao
+
+    // Danh mục & Tin tức (URL: /{slug} và /{slug}.html)
+    route(":slug", "routes/_main/category-or-article.$slug.tsx"), // Route: /:slug (danh mục)
+    route(":slug.html", "routes/_main/article.$slug.tsx"), // Route: /:slug.html (bài viết)
   ]),
 
   // 3. Nhóm Dashboard (Dành cho Quản lý / Bác sĩ)

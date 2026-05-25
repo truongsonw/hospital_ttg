@@ -226,7 +226,7 @@ function CategoryForm({
             </div>
             <div className="space-y-1.5">
               <Label>URL nút</Label>
-              <Input placeholder="/tin-tuc?type=..." {...register("homepageButtonUrl")} />
+              <Input placeholder="/<slug>.html" {...register("homepageButtonUrl")} />
             </div>
           </div>
         </div>

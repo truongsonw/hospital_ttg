@@ -18,19 +18,18 @@ const fallbackMenuItems: HeaderMenuItem[] = [
   { title: "Trang chủ", href: "/" },
   {
     title: "Giới thiệu",
-    children: [{ title: "Giới thiệu chung", href: "/about" }],
+    children: [{ title: "Giới thiệu chung", href: "/gioi-thieu-chung" }],
   },
   {
-    title: "Đội ngũ bác sĩ",
+    title: "Chuyên khoa",
     children: [
+      { title: "Danh sách chuyên khoa", href: "/chuyen-khoa" },
       { title: "Ban lãnh đạo", href: "/ban-lanh-dao" },
-      { title: "Đội ngũ chuyên gia", href: "/doi-ngu-chuyen-gia" },
     ],
   },
   {
-    title: "Tin tức",
-    href: "/tin-tuc",
-    children: [{ title: "Tất cả tin tức", href: "/tin-tuc" }],
+    title: "Đội ngũ bác sĩ",
+    href: "/doi-ngu-chuyen-gia",
   },
   { title: "Liên hệ", href: "/contact" },
 ];

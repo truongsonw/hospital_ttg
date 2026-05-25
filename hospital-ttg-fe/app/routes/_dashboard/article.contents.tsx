@@ -642,7 +642,7 @@ export default function ArticleContentsPage() {
                     <TableCell className="text-center text-sm">{formatDate(item.publishedAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Link to={`/tin-tuc/${item.slug}`} target="_blank" rel="noopener noreferrer">
+                        <Link to={`/${item.slug}.html`} target="_blank" rel="noopener noreferrer">
                           <Button size="icon" variant="ghost" title="Xem trang chi tiết">
                             <ExternalLink className="size-4 text-muted-foreground" />
                           </Button>

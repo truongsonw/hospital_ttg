@@ -85,11 +85,24 @@ function CreateMenuDialog({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateValues>({
     resolver: zodResolver(createSchema),
     defaultValues: { title: "", url: "", sortOrder: 0, isActive: true, parentId: "" },
   });
+
+  function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const parentId = e.target.value;
+    setValue("parentId", parentId);
+    if (parentId) {
+      const parent = flat.find((m) => m.id === parentId);
+      if (parent?.url) {
+        const baseUrl = parent.url.endsWith("/") ? parent.url : parent.url + "/";
+        setValue("url", baseUrl);
+      }
+    }
+  }
 
   async function onSubmit(values: CreateValues) {
     setServerError(null);
@@ -124,18 +137,10 @@ function CreateMenuDialog({
         </DialogHeader>
         <form className="space-y-4 pt-2" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-2">
-            <Label>Tiêu đề *</Label>
-            <Input {...register("title")} placeholder="VD: Giới thiệu" />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>URL</Label>
-            <Input {...register("url")} placeholder="/about (để trống nếu là menu cha không có link)" />
-          </div>
-          <div className="space-y-2">
             <Label>Menu cha</Label>
             <select
               {...register("parentId")}
+              onChange={handleParentChange}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">-- Không có (menu gốc) --</option>
@@ -145,6 +150,15 @@ function CreateMenuDialog({
                 </option>
               ))}
             </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Tiêu đề *</Label>
+            <Input {...register("title")} placeholder="VD: Giới thiệu" />
+            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>URL</Label>
+            <Input {...register("url")} placeholder="/gioi-thieu-chung (để trống nếu là menu cha không có link)" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -191,6 +205,7 @@ function EditMenuDialog({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<UpdateValues>({
     resolver: zodResolver(updateSchema),
@@ -202,6 +217,18 @@ function EditMenuDialog({
       parentId: menu.parentId ?? "",
     },
   });
+
+  function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const parentId = e.target.value;
+    setValue("parentId", parentId);
+    if (parentId) {
+      const parent = flat.find((m) => m.id === parentId);
+      if (parent?.url) {
+        const baseUrl = parent.url.endsWith("/") ? parent.url : parent.url + "/";
+        setValue("url", baseUrl);
+      }
+    }
+  }
 
   React.useEffect(() => {
     if (open) {
@@ -244,18 +271,10 @@ function EditMenuDialog({
         </DialogHeader>
         <form className="space-y-4 pt-2" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-2">
-            <Label>Tiêu đề *</Label>
-            <Input {...register("title")} />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>URL</Label>
-            <Input {...register("url")} />
-          </div>
-          <div className="space-y-2">
             <Label>Menu cha</Label>
             <select
               {...register("parentId")}
+              onChange={handleParentChange}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">-- Không có (menu gốc) --</option>
@@ -265,6 +284,15 @@ function EditMenuDialog({
                 </option>
               ))}
             </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Tiêu đề *</Label>
+            <Input {...register("title")} />
+            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>URL</Label>
+            <Input {...register("url")} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

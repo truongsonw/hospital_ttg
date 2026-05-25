@@ -47,7 +47,7 @@ export default function SpecialtySection({
                 key={item.id}
                 className="flex justify-between items-center border-b border-gray-200 pb-3 group">
                 <Link
-                  to={`/doi-ngu-chuyen-gia?khoa=${item.id}`}
+                  to={`/chuyen-khoa/${item.slug}`}
                   className="flex flex-1 items-center justify-between gap-4">
                   <span className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-green-600 transition">
                     {item.name}

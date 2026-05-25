@@ -18,7 +18,7 @@ function formatDate(d: string | null) {
 function ArticleCard({ item, categoryName }: { item: ContentDto; categoryName: string }) {
   return (
     <Link
-      to={`/tin-tuc/${item.slug}`}
+      to={`/${item.slug}.html`}
       className="group flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
     >
       <div className="relative h-48 overflow-hidden bg-gray-100">
