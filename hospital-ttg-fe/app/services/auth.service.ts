@@ -10,6 +10,11 @@ export function getAccessToken(): string | null {
   return _accessToken;
 }
 
+export function clearSession() {
+  setAccessToken(null);
+  setRefreshToken(null);
+}
+
 function setAccessToken(token: string | null) {
   _accessToken = token;
 }
@@ -28,7 +33,6 @@ function setRefreshToken(token: string | null) {
   }
 }
 
-// Wire up api.ts so it can inject tokens and call refresh
 setTokenAccessors(getAccessToken, tryRefresh);
 
 export async function login(username: string, password: string): Promise<void> {
@@ -44,10 +48,8 @@ export async function logout(): Promise<void> {
   try {
     await apiFetch('/api/auth/logout', { method: 'POST' });
   } catch {
-    // Fire-and-forget: always clear local state
   } finally {
-    setAccessToken(null);
-    setRefreshToken(null);
+    clearSession();
   }
 }
 
@@ -68,7 +70,7 @@ export async function tryRefresh(): Promise<boolean> {
         },
       );
       if (!res.ok) {
-        setRefreshToken(null);
+        clearSession();
         return false;
       }
       const data = await res.json();
@@ -76,7 +78,7 @@ export async function tryRefresh(): Promise<boolean> {
       setRefreshToken(data.data.refreshToken);
       return true;
     } catch {
-      setRefreshToken(null);
+      clearSession();
       return false;
     }
   })();
@@ -104,7 +106,5 @@ export async function changePassword(currentPassword: string, newPassword: strin
     method: 'PUT',
     body: JSON.stringify(body),
   });
-  // Backend revokes token after password change — clear local state
-  setAccessToken(null);
-  setRefreshToken(null);
+  clearSession();
 }

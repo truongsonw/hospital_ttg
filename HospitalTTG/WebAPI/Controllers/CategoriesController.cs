@@ -1,6 +1,9 @@
 using Contracts.Article.DTOs;
 using Contracts.Article.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
+using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
@@ -49,6 +52,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Create(CreateCategoryRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -56,6 +60,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Update(Guid id, UpdateCategoryRequest request, CancellationToken ct)
     {
         var result = await _service.UpdateAsync(id, request, ct);
@@ -63,6 +68,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

@@ -6,6 +6,7 @@ using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Auth;
 using Modules.Auth.Entities;
 using Modules.Auth.Repositories;
 using Shared.Abstractions.Exceptions;
@@ -165,6 +166,11 @@ public class AuthService : IAuthService
 
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync(ct);
+    }
+
+    public Task DisablePublicRegistrationAsync(CancellationToken ct = default)
+    {
+        throw new ForbiddenException("Đăng ký công khai đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên để được cấp tài khoản.");
     }
 
     private string GenerateAccessToken(User user)

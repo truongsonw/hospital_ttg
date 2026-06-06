@@ -2,13 +2,18 @@ import * as React from 'react';
 import * as authService from '~/services/auth.service';
 import type { UserDto } from '~/types/auth';
 
+export const USER_MANAGEMENT_ROLE = 'Admin';
+
 interface AuthContextValue {
   user: UserDto | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
+  hasRole: (role: string) => boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  clearAuthState: () => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -16,6 +21,11 @@ const AuthContext = React.createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<UserDto | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  const clearAuthState = React.useCallback(() => {
+    authService.clearSession();
+    setUser(null);
+  }, []);
 
   React.useEffect(() => {
     async function init() {
@@ -26,7 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(me);
         }
       } catch {
-        // No valid session
       } finally {
         setIsLoading(false);
       }
@@ -53,15 +62,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const hasRole = React.useCallback(
+    (role: string) => user?.role?.toLowerCase() === role.toLowerCase(),
+    [user],
+  );
+
+  const isAdmin = hasRole(USER_MANAGEMENT_ROLE);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: user !== null,
         isLoading,
+        isAdmin,
+        hasRole,
         login,
         logout,
         changePassword,
+        clearAuthState,
       }}
     >
       {children}

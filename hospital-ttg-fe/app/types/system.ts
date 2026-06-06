@@ -33,6 +33,7 @@ export interface UpdateMenuRequest {
   sortOrder: number;
   isActive: boolean;
   isExternal: boolean;
+  type: MenuType;
 }
 
 export interface AssignRoleMenuRequest {
@@ -40,12 +41,7 @@ export interface AssignRoleMenuRequest {
   menuIds: string[];
 }
 
-export interface RoleDto {
-  id: string;
-  name: string;
-  description?: string | null;
-  isActive: boolean;
-}
+export type { RoleDto } from "~/types/auth"
 
 export interface RoleMenuDto {
   roleMenuId: string;

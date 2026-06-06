@@ -21,8 +21,10 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetAllMenus([FromQuery] MenuType? type, CancellationToken ct)
     {
@@ -41,8 +43,10 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<MenuDto>>> GetMenuById(Guid id, CancellationToken ct)
@@ -52,9 +56,11 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<MenuDto>>> CreateMenu(CreateMenuRequest request, CancellationToken ct)
     {
@@ -63,9 +69,11 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<MenuDto>>> UpdateMenu(Guid id, UpdateMenuRequest request, CancellationToken ct)
@@ -75,9 +83,11 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteMenu(Guid id, CancellationToken ct)
@@ -87,19 +97,27 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpGet("role/{roleId}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetMenusByRole(string roleId, CancellationToken ct)
     {
+        var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        if (userRole != roleId && userRole != Modules.Auth.Extensions.AdminRole)
+            return Forbid();
+
         var result = await _sysMenuService.GetMenusByRoleAsync(roleId, ct);
         return Ok(new ApiResponse<IReadOnlyList<MenuDto>>(result));
     }
 
     [HttpPost("role/assign")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<bool>>> AssignMenusToRole(AssignRoleMenuRequest request, CancellationToken ct)
     {

@@ -1,4 +1,4 @@
-﻿using Contracts.Auth.DTOs;
+using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
 using Modules.Auth.Entities;
 using Modules.Auth.Repositories;
@@ -35,39 +35,7 @@ public class UserManagementService : IUserManagementService
         page = page < 1 ? 1 : page;
         pageSize = pageSize < 1 ? 10 : pageSize;
 
-        var users = await _userRepository.GetAllAsync(ct);
-        var query = users.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-        {
-            var normalizedKeyword = keyword.Trim().ToLowerInvariant();
-            query = query.Where(u =>
-                u.Username.ToLower().Contains(normalizedKeyword) ||
-                u.Email.ToLower().Contains(normalizedKeyword) ||
-                u.FullName.ToLower().Contains(normalizedKeyword));
-        }
-
-        if (!string.IsNullOrWhiteSpace(role))
-        {
-            var normalizedRole = role.Trim().ToLowerInvariant();
-            query = query.Where(u => u.Role.ToLower() == normalizedRole);
-        }
-
-        if (isActive.HasValue)
-        {
-            query = query.Where(u => u.IsActive == isActive.Value);
-        }
-
-        var totalRecords = query.Count();
-        var items = query
-            .OrderByDescending(u => u.CreatedAt)
-            .ThenBy(u => u.Username)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(MapListItem)
-            .ToList();
-
-        return new PagedResponse<IReadOnlyList<UserListItemDto>>(items, page, pageSize, totalRecords);
+        return await _userRepository.GetPagedAsync(keyword, role, isActive, page, pageSize, ct);
     }
 
     public async Task<UserDetailDto> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -170,8 +138,11 @@ public class UserManagementService : IUserManagementService
 
     private async Task ValidateRoleAsync(string role, CancellationToken ct)
     {
+        var roles = await _roleRepository.GetAllAsync(ct);
         var normalizedRole = role.Trim();
-        var existingRole = await _roleRepository.GetByIdAsync(normalizedRole, ct);
+        var existingRole = roles.FirstOrDefault(r =>
+            string.Equals(r.Name, normalizedRole, StringComparison.OrdinalIgnoreCase));
+
         if (existingRole is null || !existingRole.IsActive)
         {
             throw new ValidationException(new Dictionary<string, string[]>
@@ -209,20 +180,6 @@ public class UserManagementService : IUserManagementService
     {
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = null;
-    }
-
-    private static UserListItemDto MapListItem(User user)
-    {
-        return new UserListItemDto
-        {
-            Id = user.Id,
-            Username = user.Username,
-            Email = user.Email,
-            FullName = user.FullName,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-        };
     }
 
     private static UserDetailDto MapDetail(User user)

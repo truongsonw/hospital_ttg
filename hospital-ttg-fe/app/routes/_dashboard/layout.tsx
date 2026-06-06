@@ -1,5 +1,5 @@
 import { Outlet, redirect } from "react-router";
-import { AppSidebar } from "~/components/app-sidebar";
+import { AppSidebarDynamic } from "~/components/app-sidebar-dynamic";
 import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import * as authService from "~/services/auth.service";
@@ -28,7 +28,7 @@ export default function DashboardLayout() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebarDynamic variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

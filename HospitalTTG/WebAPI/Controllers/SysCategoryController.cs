@@ -1,15 +1,17 @@
+using System.Security.Claims;
 using Contracts.System.DTOs;
 using Contracts.System.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
 using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
 public class SysCategoryController : ControllerBase
 {
     private readonly ISysCategoryService _sysCategoryService;

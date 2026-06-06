@@ -25,8 +25,9 @@ import {
   CardTitle,
 } from "~/components/ui/card"
 import { Skeleton } from "~/components/ui/skeleton"
+import { useMenuItems } from "~/hooks/useMenuItems"
 import { getDashboardStats } from "~/services/system.service"
-import type { DashboardStatsDto } from "~/types/system"
+import type { DashboardStatsDto, MenuDto } from "~/types/system"
 import type { Route } from "./+types/index"
 
 const numberFormatter = new Intl.NumberFormat("vi-VN")
@@ -282,11 +283,25 @@ function QuickLinkCard({
   )
 }
 
+function flattenMenuUrls(nodes: MenuDto[]): string[] {
+  const urls: string[] = []
+
+  for (const node of nodes) {
+    if (node.url) urls.push(node.url)
+    if (node.children?.length) {
+      urls.push(...flattenMenuUrls(node.children))
+    }
+  }
+
+  return urls
+}
+
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Tổng quan Dashboard | Hospital TTG" }]
 }
 
 export default function DashboardIndex() {
+  const { menuItems } = useMenuItems()
   const [stats, setStats] = React.useState<DashboardStatsDto | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -320,6 +335,9 @@ export default function DashboardIndex() {
       })
     : null
 
+  const allowedMenuUrls = new Set(flattenMenuUrls(menuItems))
+  const visibleQuickLinks = quickLinks.filter((item) => allowedMenuUrls.has(item.to))
+
   return (
     <div className="space-y-6">
       {error ? (
@@ -345,7 +363,7 @@ export default function DashboardIndex() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {quickLinks.map((item) => (
+          {visibleQuickLinks.map((item) => (
             <QuickLinkCard key={item.title} {...item} />
           ))}
         </div>

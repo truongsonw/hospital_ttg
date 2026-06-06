@@ -9,4 +9,5 @@ public class UpdateMenuRequest
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
     public bool IsExternal { get; set; }
+    public Contracts.System.Enums.MenuType Type { get; set; }
 }

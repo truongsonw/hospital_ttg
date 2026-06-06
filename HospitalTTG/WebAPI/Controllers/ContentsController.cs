@@ -1,6 +1,9 @@
 using Contracts.Article.DTOs;
 using Contracts.Article.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
+using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
@@ -59,6 +62,7 @@ public class ContentsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/view")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> IncrementView(Guid id, CancellationToken ct)
     {
         await _service.IncrementViewCountAsync(id, ct);
@@ -66,6 +70,7 @@ public class ContentsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Create(CreateContentRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -73,6 +78,7 @@ public class ContentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Update(Guid id, UpdateContentRequest request, CancellationToken ct)
     {
         var result = await _service.UpdateAsync(id, request, ct);
@@ -80,6 +86,7 @@ public class ContentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

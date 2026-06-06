@@ -1,6 +1,7 @@
 using System.Text;
 using Contracts.Auth.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -13,9 +14,13 @@ namespace Modules.Auth;
 
 public static class Extensions
 {
+    public const string UserManagementPolicy = "UserManagement";
+    public const string AdminRole = "Admin";
+
     public static IServiceCollection AddAuthModule(this IServiceCollection services, IConfiguration configuration)
     {
         AppDbContext.RegisterModuleAssembly(typeof(UserConfiguration).Assembly);
+        AppDbContext.RegisterModuleAssembly(typeof(RoleConfiguration).Assembly);
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAuthService, AuthService>();
@@ -44,7 +49,11 @@ public static class Extensions
             };
         });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(UserManagementPolicy, policy =>
+                policy.RequireAuthenticatedUser().RequireRole(AdminRole));
+        });
 
         return services;
     }

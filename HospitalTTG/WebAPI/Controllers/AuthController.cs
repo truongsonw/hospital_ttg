@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
+using Modules.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,13 +31,12 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<UserDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ApiResponse<UserDto>>> Register(RegisterRequest request, CancellationToken ct)
+    public async Task<ActionResult> Register(RegisterRequest request, CancellationToken ct)
     {
-        var result = await _authService.RegisterAsync(request, ct);
-        return Created($"api/auth/users/{result.Id}", new ApiResponse<UserDto>(result, "User registered successfully"));
+        await _authService.DisablePublicRegistrationAsync(ct);
+        return Forbid();
     }
 
     [HttpPost("refresh")]

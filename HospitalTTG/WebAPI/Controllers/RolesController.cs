@@ -1,3 +1,4 @@
+using Modules.Auth;
 using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = Extensions.UserManagementPolicy)]
 public class RolesController : ControllerBase
 {
     private readonly IRoleService _roleService;
@@ -27,5 +28,15 @@ public class RolesController : ControllerBase
     {
         var result = await _roleService.GetAllAsync(ct);
         return Ok(new ApiResponse<IReadOnlyList<RoleDto>>(result));
+    }
+
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<RoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<RoleDto>>> GetById(string id, CancellationToken ct)
+    {
+        var role = await _roleService.GetByIdAsync(id, ct);
+        if (role is null) return NotFound();
+        return Ok(new ApiResponse<RoleDto>(role));
     }
 }

@@ -28,6 +28,13 @@ async function readJson<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function getErrorMessage(body: any, status: number) {
+  if (body?.detail) return body.detail;
+  if (body?.title) return body.title;
+  if (status === 403) return 'Bạn không có quyền thực hiện thao tác này.';
+  return 'Request failed';
+}
+
 async function doFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = _getToken();
   const headers: HeadersInit = {
@@ -40,7 +47,7 @@ async function doFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const error = new ApiError(res.status, body?.detail ?? body?.title ?? 'Request failed', body?.extensions?.errors);
+    const error = new ApiError(res.status, getErrorMessage(body, res.status), body?.extensions?.errors ?? body?.errors);
     throw error;
   }
 
@@ -60,7 +67,6 @@ export async function apiFetchRaw<T>(path: string, options: RequestInit = {}): P
       if (refreshed) {
         return doFetchRaw<T>(path, options);
       }
-      // Redirect to login if refresh failed
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
@@ -83,7 +89,7 @@ async function doUpload<T>(path: string, formData: FormData): Promise<ApiRespons
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body?.detail ?? body?.title ?? 'Upload failed', body?.extensions?.errors);
+    throw new ApiError(res.status, getErrorMessage(body, res.status), body?.extensions?.errors ?? body?.errors);
   }
   return readJson<ApiResponse<T>>(res);
 }

@@ -1,6 +1,9 @@
 using Contracts.Article.DTOs;
 using Contracts.Article.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
+using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
@@ -23,6 +26,7 @@ public class ContentMediasController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Create(CreateContentMediaRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -30,6 +34,7 @@ public class ContentMediasController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

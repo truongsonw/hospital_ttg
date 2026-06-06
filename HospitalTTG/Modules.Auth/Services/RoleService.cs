@@ -26,4 +26,17 @@ public class RoleService : IRoleService
             })
             .ToList();
     }
+
+    public async Task<RoleDto?> GetByIdAsync(string id, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct);
+        if (role is null) return null;
+        return new RoleDto
+        {
+            Id = role.Id,
+            Name = role.Name,
+            Description = role.Description,
+            IsActive = role.IsActive,
+        };
+    }
 }

@@ -44,6 +44,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("management")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DoctorDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<DoctorDto>>>> GetManagement(CancellationToken ct)
     {

@@ -9,7 +9,7 @@ namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/system/stats")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class DashboardStatsController : ControllerBase
 {
     private readonly IDashboardStatsService _service;
@@ -20,8 +20,10 @@ public class DashboardStatsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<DashboardStatsDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<DashboardStatsDto>>> Get(CancellationToken ct)
     {
         var result = await _service.GetAsync(ct);

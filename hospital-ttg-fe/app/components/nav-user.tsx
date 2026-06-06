@@ -4,7 +4,6 @@ import {
   MoreVertical,
   LogOut,
   User,
-  Settings,
   Globe,
 } from "lucide-react"
 import { useNavigate } from "react-router"
@@ -25,6 +24,8 @@ import {
   useSidebar,
 } from "~/components/ui/sidebar"
 import { useAuth } from "~/context/auth.context"
+import { useMenuItems } from "~/hooks/useMenuItems"
+import type { MenuDto } from "~/types/system"
 
 function getInitials(name: string): string {
   return name
@@ -32,15 +33,33 @@ function getInitials(name: string): string {
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
-    .toUpperCase();
+    .toUpperCase()
+}
+
+function flattenMenus(nodes: MenuDto[]): MenuDto[] {
+  const result: MenuDto[] = []
+
+  for (const node of nodes) {
+    result.push(node)
+    if (node.children?.length) {
+      result.push(...flattenMenus(node.children))
+    }
+  }
+
+  return result
 }
 
 export function NavUser() {
   const { user, logout } = useAuth()
+  const { menuItems } = useMenuItems()
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
 
   if (!user) return null
+
+  const flattenedMenuItems = flattenMenus(menuItems)
+  const canAccessAccount = flattenedMenuItems.some((menu) => menu.url === "/dashboard/settings/account")
+  const canAccessWebsite = flattenedMenuItems.some((menu) => menu.url === "/dashboard/settings/website")
 
   async function handleLogout() {
     await logout()
@@ -102,14 +121,18 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/account")}>
-                <User />
-                Tài khoản
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/website")}>
-                <Globe />
-                Thông tin website
-              </DropdownMenuItem>
+              {canAccessAccount && (
+                <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/account")}>
+                  <User />
+                  Tài khoản
+                </DropdownMenuItem>
+              )}
+              {canAccessWebsite && (
+                <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/website")}>
+                  <Globe />
+                  Thông tin website
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>

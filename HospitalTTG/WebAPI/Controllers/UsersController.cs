@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
+using Modules.Auth;
 using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = Extensions.UserManagementPolicy)]
 public class UsersController : ControllerBase
 {
     private readonly IUserManagementService _userManagementService;

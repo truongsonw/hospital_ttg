@@ -246,6 +246,7 @@ function EditMenuDialog({
         isActive: values.isActive,
         isExternal: values.isExternal,
         parentMenuId: values.parentId || null,
+        type: menu.type,
       });
       toast.success("Cập nhật menu thành công");
       onOpenChange(false);

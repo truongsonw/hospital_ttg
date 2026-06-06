@@ -97,6 +97,7 @@ public class SysMenuService : ISysMenuService
         menu.Url = request.Url;
         menu.Icon = request.Icon;
         menu.SortOrder = request.SortOrder;
+        menu.Type = request.Type;
         menu.IsActive = request.IsActive;
         menu.UpdatedDate = DateTime.UtcNow;
 
@@ -159,6 +160,7 @@ public class SysMenuService : ISysMenuService
 
             await _roleMenuRepository.AddAsync(new RoleMenu
             {
+                Id = Guid.NewGuid(),
                 RoleId = request.RoleId,
                 MenuId = menuId,
                 CanView = true

@@ -20,7 +20,9 @@ public class SiteSettingsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<SiteSettingDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<SiteSettingDto>>>> GetAll(CancellationToken ct)
     {
         var result = await _service.GetAllAsync(ct);
@@ -28,7 +30,9 @@ public class SiteSettingsController : ControllerBase
     }
 
     [HttpGet("{group}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<SiteSettingDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<SiteSettingDto>>>> GetByGroup(string group, CancellationToken ct)
     {
         var result = await _service.GetByGroupAsync(group, ct);
