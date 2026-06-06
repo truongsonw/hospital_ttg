@@ -1,6 +1,7 @@
 using Contracts.Booking.DTOs;
 using Contracts.Booking.Enums;
 using Contracts.Booking.Interfaces;
+using Contracts.Mail.DTOs;
 using Contracts.Mail.Interfaces;
 using Microsoft.Extensions.Logging;
 using Modules.Booking.Repositories;
@@ -50,6 +51,7 @@ public class BookingService : IBookingService
         var booking = new Entities.Booking
         {
             FullName = request.FullName,
+            Email = request.Email?.Trim(),
             PhoneNumber = request.PhoneNumber,
             DateOfBirth = request.DateOfBirth,
             AppointmentDate = request.AppointmentDate,
@@ -59,6 +61,7 @@ public class BookingService : IBookingService
         await _bookingRepository.AddAsync(booking, ct);
         await _unitOfWork.SaveChangesAsync(ct);
         await NotifyBookingCreatedAsync(booking, ct);
+        await SendBookingConfirmationToPatientAsync(booking, ct);
 
         return MapToDto(booking);
     }
@@ -90,6 +93,7 @@ public class BookingService : IBookingService
     {
         Id = b.Id,
         FullName = b.FullName,
+        Email = b.Email,
         PhoneNumber = b.PhoneNumber,
         DateOfBirth = b.DateOfBirth,
         AppointmentDate = b.AppointmentDate,
@@ -109,6 +113,7 @@ public class BookingService : IBookingService
                 Có lịch khám mới từ website.
 
                 Họ tên: {booking.FullName}
+                Email: {booking.Email}
                 Số điện thoại: {booking.PhoneNumber}
                 Ngày sinh: {booking.DateOfBirth:dd/MM/yyyy}
                 Ngày hẹn: {booking.AppointmentDate:dd/MM/yyyy HH:mm}
@@ -122,6 +127,41 @@ public class BookingService : IBookingService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to send booking notification email for booking {BookingId}", booking.Id);
+        }
+    }
+
+    private async Task SendBookingConfirmationToPatientAsync(Entities.Booking booking, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(booking.Email))
+            return;
+
+        try
+        {
+            await _mailSender.SendAsync(new SendMailRequest
+            {
+                To = booking.Email.Trim(),
+                ToName = booking.FullName,
+                Subject = $"Xác nhận lịch khám tại Hospital TTG - {booking.AppointmentDate:dd/MM/yyyy}",
+                Body = $"""
+                    Xin chào {booking.FullName},
+
+                    Cảm ơn bạn đã đặt lịch khám tại Hospital TTG.
+
+                    Thông tin lịch hẹn của bạn:
+                    - Ngày khám: {booking.AppointmentDate:dd/MM/yyyy HH:mm}
+                    - Mã lịch hẹn: {booking.Id}
+
+                    Chúng tôi sẽ liên hệ xác nhận qua điện thoại trong thời gian sớm nhất.
+
+                    Trân trọng,
+                    Hospital TTG
+                    """,
+                IsBodyHtml = false
+            }, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send booking confirmation email for booking {BookingId} to {Email}", booking.Id, booking.Email);
         }
     }
 }

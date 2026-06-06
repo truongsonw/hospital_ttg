@@ -59,4 +59,22 @@ public class DepartmentRepository : BaseRepository<Entities.Department>, IDepart
             .Take(limit)
             .ToListAsync(ct);
     }
+
+    public async Task<(IReadOnlyList<Entities.Department> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return ([], 0);
+
+        var query = DbSet.Where(d => d.IsActive && d.Name.Contains(search));
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(d => d.SortOrder)
+            .ThenBy(d => d.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
 }

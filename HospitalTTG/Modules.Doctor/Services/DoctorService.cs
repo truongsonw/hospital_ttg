@@ -173,6 +173,13 @@ public class DoctorService : IDoctorService
         return items.Select(d => MapToDto(d, deptMap)).ToList();
     }
 
+    public async Task<(IReadOnlyList<DoctorDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _repo.SearchAsync(search, page, pageSize, ct);
+        var deptMap = await BuildDeptMapAsync(ct);
+        return (items.Select(d => MapToDto(d, deptMap)).ToList(), total);
+    }
+
     private async Task<Dictionary<Guid, string>> BuildDeptMapAsync(CancellationToken ct)
     {
         var depts = await _deptRepo.GetAllAsync(null, ct);

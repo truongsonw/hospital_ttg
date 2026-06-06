@@ -69,6 +69,12 @@ const quickLinks = [
     icon: Building2,
   },
   {
+    title: "Người dùng",
+    description: "Tài khoản nội bộ và trạng thái hoạt động",
+    to: "/dashboard/users",
+    icon: User,
+  },
+  {
     title: "Quản lý menu",
     description: "Điều hướng và cấu trúc menu site",
     to: "/dashboard/system/menus",

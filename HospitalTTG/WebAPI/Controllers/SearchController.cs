@@ -35,9 +35,14 @@ public class SearchController : ControllerBase
         if (string.IsNullOrWhiteSpace(q))
             return BadRequest(new { message = "Query parameter 'q' is required." });
 
-        var doctors = await _doctorService.SearchAsync(q, pageSize, ct);
-        var departments = await _departmentService.SearchAsync(q, pageSize, ct);
-        var articles = await _contentService.SearchAsync(q, pageSize, ct);
+        const int maxPageSize = 50;
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > maxPageSize) pageSize = maxPageSize;
+
+        var (doctors, totalDoctors) = await _doctorService.SearchAsync(q, page, pageSize, ct);
+        var (departments, totalDepartments) = await _departmentService.SearchAsync(q, page, pageSize, ct);
+        var (articles, totalArticles) = await _contentService.SearchAsync(q, page, pageSize, ct);
 
         var doctorResults = doctors.Select(d => new SearchResultDto
         {
@@ -76,6 +81,11 @@ public class SearchController : ControllerBase
             Departments = departmentResults,
             Articles = articleResults,
             Query = q,
+            Page = page,
+            PageSize = pageSize,
+            TotalDoctors = totalDoctors,
+            TotalArticles = totalArticles,
+            TotalDepartments = totalDepartments,
         };
 
         return Ok(new ApiResponse<SearchResponseDto>(response));

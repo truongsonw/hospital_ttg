@@ -24,6 +24,7 @@ export const BOOKING_STATUS_VARIANT: Record<BookingStatus, 'default' | 'secondar
 export interface BookingDto {
   id: string;
   fullName: string;
+  email: string | null;
   phoneNumber: string;
   dateOfBirth: string;
   appointmentDate: string;
@@ -35,6 +36,7 @@ export interface BookingDto {
 
 export interface CreateBookingRequest {
   fullName: string;
+  email?: string | null;
   phoneNumber: string;
   dateOfBirth: string;
   appointmentDate: string;

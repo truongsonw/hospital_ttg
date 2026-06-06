@@ -56,7 +56,7 @@ const schema = z.object({
   body: z.string().optional(),
   thumbnail: z.string().optional(),
   fileAttach: z.string().optional(),
-  pdfViewMode: z.enum(["new-tab", "download"]).optional(),
+  pdfViewMode: z.union([z.literal(""), z.enum(["new-tab", "download"])]).optional(),
   tags: z.string().optional(),
   publishedAt: z.string().optional(),
 });
@@ -86,6 +86,8 @@ function ContentFormFields({
   formId,
   register,
   control,
+  watch,
+  setValue,
   errors,
   categories,
   serverError,
@@ -94,11 +96,31 @@ function ContentFormFields({
   formId: string;
   register: ReturnType<typeof useForm<FormValues>>["register"];
   control: ReturnType<typeof useForm<FormValues>>["control"];
+  watch: ReturnType<typeof useForm<FormValues>>["watch"];
+  setValue: ReturnType<typeof useForm<FormValues>>["setValue"];
   errors: ReturnType<typeof useForm<FormValues>>["formState"]["errors"];
   categories: CategoryDto[];
   serverError: string | null;
   onSubmit: (e: React.FormEvent) => void;
 }) {
+  const fileAttachValue = watch("fileAttach");
+  const pdfViewModeValue = watch("pdfViewMode");
+  const isPdfFile = React.useMemo(() => {
+    const normalized = (fileAttachValue ?? "").trim().toLowerCase();
+    return normalized.endsWith(".pdf") || normalized.includes("/api/storage/");
+  }, [fileAttachValue]);
+
+  React.useEffect(() => {
+    if (!fileAttachValue && pdfViewModeValue) {
+      setValue("pdfViewMode", "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+
+    if (fileAttachValue && !isPdfFile && pdfViewModeValue === "new-tab") {
+      setValue("pdfViewMode", "download", { shouldDirty: true, shouldValidate: true });
+    }
+  }, [fileAttachValue, isPdfFile, pdfViewModeValue, setValue]);
+
   return (
     <form
       id={formId}
@@ -195,13 +217,18 @@ function ContentFormFields({
           <select
             {...register("pdfViewMode")}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            disabled={!fileAttachValue}
           >
             <option value="">Không hiển thị</option>
-            <option value="new-tab">Mở trong tab mới</option>
+            {isPdfFile && <option value="new-tab">Mở trong tab mới</option>}
             <option value="download">Chỉ tải về</option>
           </select>
           <p className="text-xs text-muted-foreground">
-            Chế độ hiển thị file PDF đính kèm cho người dùng
+            {!fileAttachValue
+              ? "Hãy chọn file đính kèm trước khi cấu hình hiển thị"
+              : isPdfFile
+                ? "File PDF có thể mở tab mới hoặc chỉ tải về"
+                : "File không phải PDF chỉ hỗ trợ tải về"}
           </p>
         </div>
       </div>
@@ -341,6 +368,8 @@ function CreateDrawer({
         formId="create-content-form"
         register={register}
         control={control}
+        watch={watch}
+        setValue={setValue}
         errors={errors}
         categories={categories}
         serverError={serverError}
@@ -460,6 +489,8 @@ function EditDrawer({
           formId="edit-content-form"
           register={register}
           control={control}
+          watch={watch}
+          setValue={setValue}
           errors={errors}
           categories={categories}
           serverError={serverError}

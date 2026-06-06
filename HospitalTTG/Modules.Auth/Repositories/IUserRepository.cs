@@ -8,5 +8,7 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default);
     Task<User?> GetByRefreshTokenAsync(string refreshToken, CancellationToken ct = default);
     Task<bool> ExistsByUsernameAsync(string username, CancellationToken ct = default);
+    Task<bool> ExistsByUsernameAsync(string username, Guid? excludeUserId, CancellationToken ct = default);
     Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default);
+    Task<bool> ExistsByEmailAsync(string email, Guid? excludeUserId, CancellationToken ct = default);
 }

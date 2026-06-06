@@ -59,6 +59,30 @@ interface FlatMenu extends MenuDto {
   depth: number;
 }
 
+function normalizeMenuUrlSegment(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^(https?:|mailto:|tel:|#)/i.test(trimmed)) return trimmed;
+
+  const normalized = trimmed
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "")
+    .replace(/\s+/g, "-");
+
+  return normalized ? `/${normalized}` : "/";
+}
+
+function buildChildMenuUrl(parentUrl?: string | null): string {
+  if (!parentUrl) return "";
+
+  const normalizedParentUrl = normalizeMenuUrlSegment(parentUrl);
+  if (!normalizedParentUrl || /^(https?:|mailto:|tel:|#)/i.test(normalizedParentUrl)) {
+    return "";
+  }
+
+  return normalizedParentUrl === "/" ? "/" : `${normalizedParentUrl}/`;
+}
+
 function flattenTree(nodes: MenuDto[], depth = 0): FlatMenu[] {
   const result: FlatMenu[] = [];
   for (const node of nodes) {
@@ -86,22 +110,22 @@ function CreateMenuDialog({
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateValues>({
     resolver: zodResolver(createSchema),
     defaultValues: { title: "", url: "", sortOrder: 0, isActive: true, parentId: "" },
   });
 
+  const selectedParentId = watch("parentId");
+
   function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const parentId = e.target.value;
-    setValue("parentId", parentId);
-    if (parentId) {
-      const parent = flat.find((m) => m.id === parentId);
-      if (parent?.url) {
-        const baseUrl = parent.url.endsWith("/") ? parent.url : parent.url + "/";
-        setValue("url", baseUrl);
-      }
-    }
+    setValue("parentId", parentId, { shouldDirty: true, shouldTouch: true });
+
+    const parent = flat.find((m) => m.id === parentId);
+    const nextUrl = buildChildMenuUrl(parent?.url);
+    setValue("url", nextUrl, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
 
   async function onSubmit(values: CreateValues) {
@@ -130,7 +154,7 @@ function CreateMenuDialog({
       <Button onClick={() => setOpen(true)}>
         <Plus className="size-4 mr-1" /> Thêm menu
       </Button>
-      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }} closeOnBackdropClick={false}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Thêm menu trang chủ</DialogTitle>
@@ -158,7 +182,10 @@ function CreateMenuDialog({
           </div>
           <div className="space-y-2">
             <Label>URL</Label>
-            <Input {...register("url")} placeholder="/gioi-thieu-chung (để trống nếu là menu cha không có link)" />
+            <Input
+              {...register("url")}
+              placeholder={selectedParentId ? "/duong-dan-menu-con" : "/gioi-thieu-chung (để trống nếu là menu cha không có link)"}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -206,6 +233,7 @@ function EditMenuDialog({
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<UpdateValues>({
     resolver: zodResolver(updateSchema),
@@ -218,16 +246,15 @@ function EditMenuDialog({
     },
   });
 
+  const selectedParentId = watch("parentId");
+
   function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const parentId = e.target.value;
-    setValue("parentId", parentId);
-    if (parentId) {
-      const parent = flat.find((m) => m.id === parentId);
-      if (parent?.url) {
-        const baseUrl = parent.url.endsWith("/") ? parent.url : parent.url + "/";
-        setValue("url", baseUrl);
-      }
-    }
+    setValue("parentId", parentId, { shouldDirty: true, shouldTouch: true });
+
+    const parent = flat.find((m) => m.id === parentId);
+    const nextUrl = buildChildMenuUrl(parent?.url);
+    setValue("url", nextUrl, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
 
   React.useEffect(() => {
@@ -264,7 +291,7 @@ function EditMenuDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} closeOnBackdropClick={false}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa menu trang chủ</DialogTitle>
@@ -292,7 +319,10 @@ function EditMenuDialog({
           </div>
           <div className="space-y-2">
             <Label>URL</Label>
-            <Input {...register("url")} />
+            <Input
+              {...register("url")}
+              placeholder={selectedParentId ? "/duong-dan-menu-con" : "/gioi-thieu-chung (để trống nếu là menu cha không có link)"}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -346,7 +376,7 @@ function DeleteConfirmDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setServerError(null); }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setServerError(null); }} closeOnBackdropClick={false}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Xác nhận xóa</DialogTitle>

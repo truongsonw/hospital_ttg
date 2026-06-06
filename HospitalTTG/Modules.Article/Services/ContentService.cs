@@ -140,6 +140,12 @@ internal sealed class ContentService : IContentService
         return items.Select(MapToDto).ToList();
     }
 
+    public async Task<(IReadOnlyList<ContentDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _repository.SearchAsync(search, page, pageSize, ct);
+        return (items.Select(MapToDto).ToList(), total);
+    }
+
     private static ContentDto MapToDto(Content e) => new()
     {
         Id = e.Id,

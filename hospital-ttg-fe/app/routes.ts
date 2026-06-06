@@ -47,6 +47,7 @@ export default [
         index("routes/_dashboard/doctors.tsx"),                          // Route: /dashboard/doctors
         route("departments", "routes/_dashboard/doctors.departments.tsx"), // Route: /dashboard/doctors/departments
       ]),
+      route("users", "routes/_dashboard/users.tsx"),  // Route: /dashboard/users
     ]),
   ]),
 ] satisfies RouteConfig;

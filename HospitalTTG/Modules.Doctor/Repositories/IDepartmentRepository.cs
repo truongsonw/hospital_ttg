@@ -10,4 +10,5 @@ public interface IDepartmentRepository : IRepository<Entities.Department>
     Task<Entities.Department?> GetBySlugAsync(string slug, CancellationToken ct);
     Task<IReadOnlyList<Guid>> GetChildrenIdsByGroupSlugAsync(string groupSlug, CancellationToken ct);
     Task<IReadOnlyList<Entities.Department>> SearchAsync(string search, int limit, CancellationToken ct);
+    Task<(IReadOnlyList<Entities.Department> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct);
 }

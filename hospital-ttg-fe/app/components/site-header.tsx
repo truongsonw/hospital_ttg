@@ -23,6 +23,7 @@ const dashboardTitles = [
   { path: "/dashboard/contacts", title: "Liên hệ" },
   { path: "/dashboard/doctors/departments", title: "Quản lý khoa" },
   { path: "/dashboard/doctors", title: "Quản lý bác sĩ" },
+  { path: "/dashboard/users", title: "Quản lý người dùng" },
 ]
 
 function getDashboardTitle(pathname: string) {

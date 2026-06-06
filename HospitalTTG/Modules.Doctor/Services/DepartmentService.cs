@@ -100,6 +100,12 @@ public class DepartmentService : IDepartmentService
         return items.Select(MapToDto).ToList();
     }
 
+    public async Task<(IReadOnlyList<DepartmentDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _repo.SearchAsync(search, page, pageSize, ct);
+        return (items.Select(MapToDto).ToList(), total);
+    }
+
     private static DepartmentDto MapToDto(Entities.Department d) => new()
     {
         Id = d.Id,

@@ -12,6 +12,7 @@ interface Props {
 
 const schema = z.object({
   fullName: z.string().min(1, "Vui lòng nhập họ tên").max(100),
+  email: z.string().email("Email không hợp lệ").max(256).optional().or(z.literal("").transform(() => undefined)),
   phoneNumber: z.string().min(1, "Vui lòng nhập số điện thoại").max(20),
   dateOfBirth: z.string().min(1, "Vui lòng chọn ngày sinh"),
   appointmentDate: z.string().min(1, "Vui lòng chọn ngày khám"),
@@ -35,6 +36,7 @@ export default function BookingModal({ open, onClose }: Props) {
   async function onSubmit(values: FormValues) {
     await createBooking({
       fullName: values.fullName,
+      email: values.email || null,
       phoneNumber: values.phoneNumber,
       dateOfBirth: new Date(values.dateOfBirth).toISOString(),
       appointmentDate: new Date(values.appointmentDate).toISOString(),
@@ -67,7 +69,7 @@ export default function BookingModal({ open, onClose }: Props) {
             <CheckCircle className="w-16 h-16 text-green-500" />
             <h3 className="text-2xl font-bold text-gray-800">Đặt lịch thành công!</h3>
             <p className="text-gray-500 text-sm max-w-xs">
-              Chúng tôi đã nhận được lịch hẹn của bạn và sẽ xác nhận qua điện thoại trong thời gian sớm nhất.
+              Chúng tôi đã nhận được lịch hẹn của bạn và sẽ gửi thông tin xác nhận qua email trong thời gian sớm nhất.
             </p>
             <button
               onClick={handleClose}
@@ -81,7 +83,7 @@ export default function BookingModal({ open, onClose }: Props) {
           <>
             <h3 className="text-2xl font-bold mb-2">Đặt lịch khám</h3>
             <p className="text-gray-500 text-sm mb-6">
-              Điền thông tin bên dưới, chúng tôi sẽ xác nhận qua điện thoại.
+              Điền thông tin bên dưới, chúng tôi sẽ liên hệ xác nhận qua điện thoại.
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -98,7 +100,20 @@ export default function BookingModal({ open, onClose }: Props) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-600">Email</label>
+                  <input
+                    type="email"
+                    placeholder="nguyenvana@example.com"
+                    className="w-full border rounded-xl p-3 mt-1 focus:ring-2 focus:ring-indigo-400 outline-none"
+                    {...register("email")}
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                  )}
+                </div>
+
                 <div>
                   <label className="text-sm text-gray-600">Số điện thoại *</label>
                   <input
@@ -111,19 +126,19 @@ export default function BookingModal({ open, onClose }: Props) {
                     <p className="text-xs text-red-500 mt-1">{errors.phoneNumber.message}</p>
                   )}
                 </div>
+              </div>
 
-                <div>
-                  <label className="text-sm text-gray-600">Ngày sinh *</label>
-                  <input
-                    type="date"
-                    max={today}
-                    className="w-full border rounded-xl p-3 mt-1 focus:ring-2 focus:ring-indigo-400 outline-none"
-                    {...register("dateOfBirth")}
-                  />
-                  {errors.dateOfBirth && (
-                    <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="text-sm text-gray-600">Ngày sinh *</label>
+                <input
+                  type="date"
+                  max={today}
+                  className="w-full border rounded-xl p-3 mt-1 focus:ring-2 focus:ring-indigo-400 outline-none"
+                  {...register("dateOfBirth")}
+                />
+                {errors.dateOfBirth && (
+                  <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>
+                )}
               </div>
 
               <div>

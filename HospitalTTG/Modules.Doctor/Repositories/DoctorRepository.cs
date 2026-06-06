@@ -49,6 +49,26 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
             .ToListAsync(ct);
     }
 
+    public async Task<(IReadOnlyList<Entities.Doctor> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return ([], 0);
+
+        var query = DbSet.Where(d => d.IsActive && (
+            d.FullName.Contains(search) ||
+            (d.Specialty != null && d.Specialty.Contains(search)) ||
+            (d.Position != null && d.Position.Contains(search))));
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(d => d.FullName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public async Task<IReadOnlyList<Entities.Doctor>> GetFeaturedAsync(int limit, CancellationToken ct)
     {
         return await DbSet

@@ -13,6 +13,11 @@ export interface SearchResponse {
   departments: SearchResultItem[];
   articles: SearchResultItem[];
   query: string;
+  page: number;
+  pageSize: number;
+  totalDoctors: number;
+  totalArticles: number;
+  totalDepartments: number;
 }
 
 export interface SearchSuggestItem {

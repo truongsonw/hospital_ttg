@@ -8,6 +8,9 @@ public class CreateBookingRequest
     [MaxLength(100)]
     public string FullName { get; set; } = string.Empty;
 
+    [MaxLength(256)]
+    public string? Email { get; set; }
+
     [Required]
     [MaxLength(20)]
     public string PhoneNumber { get; set; } = string.Empty;

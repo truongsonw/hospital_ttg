@@ -1,4 +1,4 @@
-export interface LoginRequest {
+﻿export interface LoginRequest {
   username: string;
   password: string;
 }
@@ -20,6 +20,60 @@ export interface UserDto {
   email: string;
   fullName: string;
   role: string;
+}
+
+export interface UserListItemDto {
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface UserDetailDto {
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+  createdBy: string | null;
+  updatedBy: string | null;
+}
+
+export interface CreateUserRequest {
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  password: string;
+  isActive: boolean;
+}
+
+export interface UpdateUserRequest {
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+}
+
+export interface UpdateUserStatusRequest {
+  isActive: boolean;
+}
+
+export interface ResetUserPasswordRequest {
+  newPassword: string;
+}
+
+export interface RoleDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
 }
 
 export interface ApiResponse<T> {

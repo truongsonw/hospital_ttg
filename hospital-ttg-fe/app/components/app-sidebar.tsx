@@ -13,6 +13,7 @@ import {
   Stethoscope,
   Building2,
   Globe,
+  User,
 } from "lucide-react"
 import { Link } from "react-router"
 
@@ -100,6 +101,13 @@ const data = {
       title: "Quản lý khoa",
       url: "/dashboard/doctors/departments",
       icon: Building2,
+    },
+  ],
+  navUsers: [
+    {
+      title: "Người dùng",
+      url: "/dashboard/users",
+      icon: User,
     },
   ],
   navSecondary: [
@@ -199,6 +207,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navDoctors.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* User module */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Người dùng</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {data.navUsers.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
                     <item.icon />

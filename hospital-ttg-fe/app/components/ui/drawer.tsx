@@ -145,9 +145,30 @@ function SidePanelDescription({
   )
 }
 
+function SidePanelContent({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}: React.ComponentProps<"div"> & {
+  showCloseButton?: boolean
+}) {
+  return (
+    <div
+      data-slot="side-panel-content"
+      className={cn("relative flex h-full min-h-0 flex-col", className)}
+      {...props}
+    >
+      {children}
+      {showCloseButton && <SidePanelClose />}
+    </div>
+  )
+}
+
 // Legacy alias – keeps existing consumers working without import changes
 const Drawer = SidePanel
 const DrawerClose = SidePanelClose
+const DrawerContent = SidePanelContent
 const DrawerHeader = SidePanelHeader
 const DrawerFooter = SidePanelFooter
 const DrawerTitle = SidePanelTitle
@@ -162,6 +183,7 @@ export {
   SidePanelDescription,
   Drawer,
   DrawerClose,
+  DrawerContent,
   DrawerHeader,
   DrawerFooter,
   DrawerTitle,

@@ -23,10 +23,12 @@ function Dialog({
   open,
   onOpenChange,
   children,
+  closeOnBackdropClick = true,
   ...props
 }: React.ComponentProps<"dialog"> & {
   open: boolean
   onOpenChange: (v: boolean) => void
+  closeOnBackdropClick?: boolean
 }) {
   const dialogRef = React.useRef<HTMLDialogElement>(null)
 
@@ -57,7 +59,7 @@ function Dialog({
         props.className as string
       )}
       onClick={(e) => {
-        if (e.target === dialogRef.current) onOpenChange(false)
+        if (closeOnBackdropClick && e.target === dialogRef.current) onOpenChange(false)
       }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {

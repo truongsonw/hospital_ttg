@@ -19,6 +19,7 @@ public static class Extensions
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
 
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IRoleService, RoleService>();

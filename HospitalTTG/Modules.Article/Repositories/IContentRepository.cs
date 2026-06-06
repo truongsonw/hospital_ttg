@@ -12,6 +12,7 @@ internal interface IContentRepository
     Task<IReadOnlyList<Content>> GetHomepageFeaturedAsync(string? type, IReadOnlyList<Guid>? categoryIds, IReadOnlyList<Guid>? featuredCategoryIds, int limit, CancellationToken ct = default);
     Task<IReadOnlyList<Content>> GetForHomepageCategoryAsync(Guid categoryId, int limit, CancellationToken ct = default);
     Task<IReadOnlyList<Content>> SearchAsync(string search, int limit, CancellationToken ct = default);
+    Task<(IReadOnlyList<Content> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default);
     Task IncrementViewCountAsync(Guid id, CancellationToken ct = default);
     void Add(Content content);
     void Update(Content content);

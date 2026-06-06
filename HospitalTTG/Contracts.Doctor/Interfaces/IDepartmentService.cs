@@ -13,4 +13,5 @@ public interface IDepartmentService
     Task<DepartmentDto> UpdateAsync(Guid id, UpdateDepartmentRequest request, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<DepartmentDto>> SearchAsync(string search, int limit, CancellationToken ct = default);
+    Task<(IReadOnlyList<DepartmentDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default);
 }

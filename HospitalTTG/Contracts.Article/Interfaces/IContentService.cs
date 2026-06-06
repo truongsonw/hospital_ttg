@@ -17,4 +17,5 @@ public interface IContentService
     Task<ContentDto> UpdateAsync(Guid id, UpdateContentRequest request, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<ContentDto>> SearchAsync(string search, int limit, CancellationToken ct = default);
+    Task<(IReadOnlyList<ContentDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default);
 }

@@ -120,6 +120,27 @@ internal sealed class ContentRepository : IContentRepository
             .ToListAsync(ct);
     }
 
+    public async Task<(IReadOnlyList<Content> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return ([], 0);
+
+        var searchLower = search.ToLower();
+        var query = _dbSet.AsNoTracking().Where(x => x.Status == 1 && (
+            x.Title.ToLower().Contains(searchLower) ||
+            (x.Intro != null && x.Intro.ToLower().Contains(searchLower)) ||
+            (x.Tags != null && x.Tags.ToLower().Contains(searchLower))));
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(x => x.PublishedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public async Task IncrementViewCountAsync(Guid id, CancellationToken ct = default)
         => await _dbSet.Where(x => x.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(e => e.ViewCount, e => e.ViewCount + 1), ct);

@@ -58,11 +58,13 @@ BEGIN
     CREATE TABLE dbo.Bookings (
         Id              UNIQUEIDENTIFIER    NOT NULL DEFAULT NEWID(),
         FullName        NVARCHAR(100)       NOT NULL,
+        Email           NVARCHAR(256)       NULL,
         PhoneNumber     NVARCHAR(20)        NOT NULL,
         DateOfBirth     DATETIME2           NOT NULL,
         AppointmentDate DATETIME2           NOT NULL,
         Symptoms        NVARCHAR(2000)      NULL,
         Status          INT                 NOT NULL,   -- 0=Pending, 1=Confirmed, 2=Completed, 3=Cancelled
+        Note            NVARCHAR(1000)      NULL,
         CreatedAt       DATETIME2           NOT NULL,
         UpdatedAt       DATETIME2           NULL,
         CreatedBy       NVARCHAR(MAX)       NULL,
