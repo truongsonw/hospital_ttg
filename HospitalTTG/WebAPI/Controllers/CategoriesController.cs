@@ -52,7 +52,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.CategoryManage)]
     public async Task<IActionResult> Create(CreateCategoryRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -60,7 +60,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.CategoryManage)]
     public async Task<IActionResult> Update(Guid id, UpdateCategoryRequest request, CancellationToken ct)
     {
         var result = await _service.UpdateAsync(id, request, ct);
@@ -68,7 +68,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.CategoryManage)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

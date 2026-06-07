@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useAuth } from "~/context/auth.context"
-import { getMenusByRole } from "~/services/menu.service"
+import { getCurrentUserMenus } from "~/services/menu.service"
 import type { MenuDto } from "~/types/system"
 
 interface UseMenuItemsResult {
@@ -26,7 +26,7 @@ export function useMenuItems(): UseMenuItemsResult {
     setLoading(true)
     setError(null)
 
-    getMenusByRole(user.role)
+    getCurrentUserMenus()
       .then((items) => {
         if (!cancelled) setMenuItems(items)
       })

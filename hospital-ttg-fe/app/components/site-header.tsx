@@ -10,8 +10,8 @@ import { SidebarTrigger } from "~/components/ui/sidebar"
 
 const dashboardTitles = [
   { path: "/dashboard", title: "Bảng điều khiển" },
+  { path: "/dashboard/profile", title: "Hồ sơ cá nhân" },
   { path: "/dashboard/settings", title: "Cài đặt" },
-  { path: "/dashboard/settings/account", title: "Tài khoản" },
   { path: "/dashboard/settings/website", title: "Thông tin website" },
   { path: "/dashboard/system/menus", title: "Quản lý Menu" },
   { path: "/dashboard/system/categories", title: "Danh mục hệ thống" },

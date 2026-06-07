@@ -1,6 +1,7 @@
 using Contracts.Contact.DTOs;
 using Contracts.Contact.Enums;
 using Contracts.Contact.Interfaces;
+using Modules.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,10 @@ public class ContactsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = Permissions.ContactManage)]
     [ProducesResponseType(typeof(PagedResponse<IReadOnlyList<ContactDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResponse<IReadOnlyList<ContactDto>>>> GetPaged(
         [FromQuery] ContactStatus? status,
         [FromQuery] string? search,
@@ -34,9 +37,11 @@ public class ContactsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.ContactManage)]
     [ProducesResponseType(typeof(ApiResponse<ContactDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<ContactDto>>> GetById(Guid id, CancellationToken ct)
     {
         var result = await _contactService.GetByIdAsync(id, ct);
@@ -44,6 +49,7 @@ public class ContactsController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<ContactDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<ContactDto>>> Create(CreateContactRequest request, CancellationToken ct)
@@ -53,10 +59,12 @@ public class ContactsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/status")]
-    [Authorize]
+    [Authorize(Policy = Permissions.ContactManage)]
     [ProducesResponseType(typeof(ApiResponse<ContactDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<ContactDto>>> UpdateStatus(
         Guid id, UpdateContactStatusRequest request, CancellationToken ct)
     {
@@ -65,10 +73,12 @@ public class ContactsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/reply")]
-    [Authorize]
+    [Authorize(Policy = Permissions.ContactManage)]
     [ProducesResponseType(typeof(ApiResponse<ContactDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<ContactDto>>> Reply(
         Guid id, ReplyContactRequest request, CancellationToken ct)
     {
@@ -77,9 +87,11 @@ public class ContactsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.ContactManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         await _contactService.DeleteAsync(id, ct);

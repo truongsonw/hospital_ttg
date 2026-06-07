@@ -58,7 +58,6 @@ export function NavUser() {
   if (!user) return null
 
   const flattenedMenuItems = flattenMenus(menuItems)
-  const canAccessAccount = flattenedMenuItems.some((menu) => menu.url === "/dashboard/settings/account")
   const canAccessWebsite = flattenedMenuItems.some((menu) => menu.url === "/dashboard/settings/website")
 
   async function handleLogout() {
@@ -121,12 +120,10 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              {canAccessAccount && (
-                <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/account")}>
-                  <User />
-                  Tài khoản
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => navigateTo("/dashboard/profile")}>
+                <User />
+                Hồ sơ cá nhân
+              </DropdownMenuItem>
               {canAccessWebsite && (
                 <DropdownMenuItem onClick={() => navigateTo("/dashboard/settings/website")}>
                   <Globe />

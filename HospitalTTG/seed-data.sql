@@ -35,33 +35,35 @@ VALUES
 PRINT '=== Step 6: Seed Admin Menus (Type=0) ===';
 
 -- Parent menus
-DECLARE @mDashboard   UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000001';
-DECLARE @mSystem      UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000010';
-DECLARE @mArticle     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000020';
-DECLARE @mReception   UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000030';
-DECLARE @mDoctor      UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000040';
-DECLARE @mSettings    UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000050';
+DECLARE @mDashboard   UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000001';
+DECLARE @mSystem      UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000010';
+DECLARE @mArticle     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000020';
+DECLARE @mReception   UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000040';
+DECLARE @mDoctor      UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000030';
+DECLARE @mSettings    UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000050';
 
 -- System children
-DECLARE @mSysMenu     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000011';
-DECLARE @mSysPubMenu  UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000012';
-DECLARE @mSysCate     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000013';
+DECLARE @mSysMenu     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000011';
+DECLARE @mSysPubMenu  UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000012';
+DECLARE @mSysCate     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000013';
+DECLARE @mSysUsers    UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000014';
+DECLARE @mSysRoles    UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000015';
 
 -- Article children
-DECLARE @mArtCate     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000021';
-DECLARE @mArtContent  UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000022';
+DECLARE @mArtCate     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000021';
+DECLARE @mArtContent  UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000022';
 
 -- Reception children
-DECLARE @mBooking     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000031';
-DECLARE @mContact     UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000032';
+DECLARE @mBooking     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000041';
+DECLARE @mContact     UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000042';
 
 -- Doctor children
-DECLARE @mDoctorList  UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000041';
-DECLARE @mDept        UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000042';
+DECLARE @mDoctorList  UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000031';
+DECLARE @mDept        UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000032';
 
 -- Settings children
-DECLARE @mSetAccount  UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000051';
-DECLARE @mSetWebsite  UNIQUEIDENTIFIER = '33333333-0000-0000-0000-000000000052';
+DECLARE @mSetAccount  UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000051';
+DECLARE @mSetWebsite  UNIQUEIDENTIFIER = '22222222-0000-0000-0000-000000000052';
 
 -- Parent: Bảng điều khiển
 INSERT INTO dbo.Menus (Id, ParentId, Title, Url, Icon, SortOrder, IsActive, [Type], CreatedBy, CreatedDate)
@@ -90,9 +92,11 @@ VALUES (@mSettings, NULL, N'Cài đặt', NULL, N'Settings', 60, 1, 0, @sys, @no
 -- Children: Hệ thống
 INSERT INTO dbo.Menus (Id, ParentId, Title, Url, Icon, SortOrder, IsActive, [Type], CreatedBy, CreatedDate)
 VALUES
-  (@mSysMenu,   @mSystem, N'Menu hệ thống',     N'/dashboard/system/menus',         N'Menu',        10, 1, 0, @sys, @now),
-  (@mSysPubMenu, @mSystem, N'Menu trang chủ',    N'/dashboard/system/public-menus', N'Globe',       20, 1, 0, @sys, @now),
-  (@mSysCate,   @mSystem, N'Danh mục hệ thống', N'/dashboard/system/categories',   N'LayoutGrid',  30, 1, 0, @sys, @now);
+  (@mSysMenu,   @mSystem, N'Menu hệ thống',                N'/dashboard/system/menus',         N'Menu',        10, 1, 0, @sys, @now),
+  (@mSysPubMenu, @mSystem, N'Menu trang chủ',              N'/dashboard/system/public-menus', N'Globe',       20, 1, 0, @sys, @now),
+  (@mSysCate,   @mSystem, N'Danh mục hệ thống',            N'/dashboard/system/categories',   N'LayoutGrid',  30, 1, 0, @sys, @now),
+  (@mSysUsers,  @mSystem, N'Quản lý tài khoản người dùng', N'/dashboard/users',               N'User',        40, 1, 0, @sys, @now),
+  (@mSysRoles,  @mSystem, N'Quản lý vai trò',              N'/dashboard/roles',               N'Users',       50, 1, 0, @sys, @now);
 
 -- Children: Nội dung
 INSERT INTO dbo.Menus (Id, ParentId, Title, Url, Icon, SortOrder, IsActive, [Type], CreatedBy, CreatedDate)
@@ -120,7 +124,7 @@ VALUES
 
 PRINT '=== Step 7: Seed RoleMenus ===';
 
--- Admin: full access (all 17 menus)
+-- Admin: full access (all 19 menus)
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mDashboard, 1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSystem,    1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mArticle,   1, @sys, @now);
@@ -130,6 +134,8 @@ INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) 
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSysMenu,   1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSysPubMenu,1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSysCate,   1, @sys, @now);
+INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSysUsers,  1, @sys, @now);
+INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mSysRoles,  1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mArtCate,   1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mArtContent,1, @sys, @now);
 INSERT INTO dbo.RoleMenus (Id, RoleId, MenuId, CanView, CreatedBy, CreatedDate) VALUES (NEWID(), N'Admin', @mBooking,   1, @sys, @now);

@@ -17,12 +17,18 @@ namespace Modules.Auth.Services;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork, IConfiguration configuration)
+    public AuthService(
+        IUserRepository userRepository,
+        IRoleRepository roleRepository,
+        IUnitOfWork unitOfWork,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
         _unitOfWork = unitOfWork;
         _configuration = configuration;
     }
@@ -140,6 +146,53 @@ public class AuthService : IAuthService
     {
         var user = await _userRepository.GetByIdAsync(userId, ct)
             ?? throw new NotFoundException("User", userId);
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            FullName = user.FullName,
+            Role = user.Role
+        };
+    }
+
+    public async Task<CurrentUserDto> GetCurrentUserWithPermissionsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, ct)
+            ?? throw new NotFoundException("User", userId);
+
+        var permissions = await _roleRepository.GetPermissionsByRoleAsync(user.Role, ct);
+
+        return new CurrentUserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            FullName = user.FullName,
+            Role = user.Role,
+            Permissions = permissions,
+        };
+    }
+
+    public async Task<UserDto> UpdateCurrentUserAsync(Guid userId, UpdateMyProfileRequest request, CancellationToken ct = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, ct)
+            ?? throw new NotFoundException("User", userId);
+
+        if (await _userRepository.ExistsByEmailAsync(request.Email.Trim(), user.Id, ct))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                { "Email", ["Email đã được sử dụng bởi tài khoản khác."] }
+            });
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Email = request.Email.Trim();
+
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(ct);
 
         return new UserDto
         {

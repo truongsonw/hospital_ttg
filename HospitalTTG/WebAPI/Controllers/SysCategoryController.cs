@@ -11,7 +11,7 @@ namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+[Authorize(Policy = Permissions.CategoryManage)]
 public class SysCategoryController : ControllerBase
 {
     private readonly ISysCategoryService _sysCategoryService;

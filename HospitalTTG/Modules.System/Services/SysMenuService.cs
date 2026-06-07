@@ -121,6 +121,11 @@ public class SysMenuService : ISysMenuService
         await _unitOfWork.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<MenuDto>> GetMenusForCurrentRoleAsync(string roleId, CancellationToken ct = default)
+    {
+        return await GetMenusByRoleAsync(roleId, ct);
+    }
+
     public async Task<IReadOnlyList<MenuDto>> GetMenusByRoleAsync(string roleId, CancellationToken ct = default)
     {
         var roleMenus = await _roleMenuRepository.GetByRoleIdAsync(roleId, ct);

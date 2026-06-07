@@ -1,5 +1,9 @@
 import { apiFetch, setTokenAccessors } from '~/lib/api';
-import type { ChangePasswordRequest, TokenResponse, UserDto } from '~/types/auth';
+import type { ChangePasswordRequest, TokenResponse, UpdateMyProfileRequest, UserDto } from '~/types/auth';
+
+export interface CurrentUser extends UserDto {
+  permissions: string[];
+}
 
 const REFRESH_TOKEN_KEY = 'hospital_ttg_refresh_token';
 
@@ -97,6 +101,19 @@ export async function ensureAuthenticated(): Promise<boolean> {
 
 export async function getMe(): Promise<UserDto> {
   const res = await apiFetch<UserDto>('/api/auth/me');
+  return res.data;
+}
+
+export async function updateMe(payload: UpdateMyProfileRequest): Promise<UserDto> {
+  const res = await apiFetch<UserDto>('/api/auth/me', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function getMeWithPermissions(): Promise<CurrentUser> {
+  const res = await apiFetch<CurrentUser>('/api/auth/me/permissions');
   return res.data;
 }
 

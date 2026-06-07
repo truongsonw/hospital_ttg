@@ -10,6 +10,12 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
 import {
+  Drawer,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "~/components/ui/drawer";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -36,6 +42,8 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Quản lý Menu trang chủ | Hospital TTG" }];
 }
 
+// ── Schemas ─────────────────────────────────────────────────────────────────
+
 const createSchema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống").max(200),
   url: z.string().max(500),
@@ -49,15 +57,20 @@ const updateSchema = z.object({
   url: z.string().max(500),
   sortOrder: z.number().int(),
   isActive: z.boolean(),
+  isExternal: z.boolean(),
   parentId: z.string(),
 });
 
 type CreateValues = z.infer<typeof createSchema>;
 type UpdateValues = z.infer<typeof updateSchema>;
 
+// ── Types ───────────────────────────────────────────────────────────────────
+
 interface FlatMenu extends MenuDto {
   depth: number;
 }
+
+// ── URL Helpers ─────────────────────────────────────────────────────────────
 
 function normalizeMenuUrlSegment(value: string): string {
   const trimmed = value.trim();
@@ -94,16 +107,29 @@ function flattenTree(nodes: MenuDto[], depth = 0): FlatMenu[] {
   return result;
 }
 
-function CreateMenuDialog({
-  menus,
-  onCreated,
+// ── Menu Form (dùng chung cho create & edit) ─────────────────────────────────
+
+function MenuForm({
+  formId,
+  defaultValues,
+  allMenus,
+  excludeId,
+  onSubmit,
 }: {
-  menus: MenuDto[];
-  onCreated: () => void;
+  formId: string;
+  defaultValues?: Partial<CreateValues & UpdateValues>;
+  allMenus: MenuDto[];
+  excludeId?: string;
+  onSubmit: (values: CreateValues | UpdateValues) => Promise<void>;
 }) {
-  const [open, setOpen] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
-  const flat = React.useMemo(() => flattenTree(menus), [menus]);
+  const flat = React.useMemo(() => flattenTree(allMenus), [allMenus]);
+  const available = React.useMemo(
+    () => flat.filter((m) => m.id !== excludeId),
+    [flat, excludeId],
+  );
+
+  const schema = formId === "create-menu-form" ? createSchema : updateSchema;
 
   const {
     register,
@@ -112,296 +138,111 @@ function CreateMenuDialog({
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<CreateValues>({
-    resolver: zodResolver(createSchema),
-    defaultValues: { title: "", url: "", sortOrder: 0, isActive: true, parentId: "" },
-  });
-
-  const selectedParentId = watch("parentId");
-
-  function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const parentId = e.target.value;
-    setValue("parentId", parentId, { shouldDirty: true, shouldTouch: true });
-
-    const parent = flat.find((m) => m.id === parentId);
-    const nextUrl = buildChildMenuUrl(parent?.url);
-    setValue("url", nextUrl, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }
-
-  async function onSubmit(values: CreateValues) {
-    setServerError(null);
-    try {
-      await createMenu({
-        title: values.title,
-        url: values.url || null,
-        icon: null,
-        sortOrder: values.sortOrder,
-        isActive: values.isActive,
-        parentId: values.parentId || null,
-        type: MenuType.Public,
-      });
-      toast.success("Tạo menu thành công");
-      setOpen(false);
-      reset();
-      onCreated();
-    } catch (err) {
-      setServerError(err instanceof ApiError ? err.message : "Đã có lỗi xảy ra");
-    }
-  }
-
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="size-4 mr-1" /> Thêm menu
-      </Button>
-      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { reset(); setServerError(null); } }} closeOnBackdropClick={false}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Thêm menu trang chủ</DialogTitle>
-        </DialogHeader>
-        <form className="space-y-4 pt-2" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-2">
-            <Label>Menu cha</Label>
-            <select
-              {...register("parentId")}
-              onChange={handleParentChange}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">-- Không có (menu gốc) --</option>
-              {flat.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {"　".repeat(m.depth)}{m.depth > 0 ? "└ " : ""}{m.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>Tiêu đề *</Label>
-            <Input {...register("title")} placeholder="VD: Giới thiệu" />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>URL</Label>
-            <Input
-              {...register("url")}
-              placeholder={selectedParentId ? "/duong-dan-menu-con" : "/gioi-thieu-chung (để trống nếu là menu cha không có link)"}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Thứ tự</Label>
-              <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
-            </div>
-            <div className="flex items-center gap-2 pt-6">
-              <input type="checkbox" id="isActive" defaultChecked {...register("isActive")} className="size-4" />
-              <Label htmlFor="isActive">Kích hoạt</Label>
-            </div>
-          </div>
-          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Hủy</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Đang lưu..." : "Tạo mới"}</Button>
-          </div>
-        </form>
-      </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function EditMenuDialog({
-  menu,
-  menus,
-  onUpdated,
-  open,
-  onOpenChange,
-}: {
-  menu: MenuDto;
-  menus: MenuDto[];
-  onUpdated: () => void;
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-}) {
-  const [serverError, setServerError] = React.useState<string | null>(null);
-  const flat = React.useMemo(
-    () => flattenTree(menus).filter((m) => m.id !== menu.id),
-    [menus, menu.id],
-  );
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<UpdateValues>({
-    resolver: zodResolver(updateSchema),
+  } = useForm<CreateValues | UpdateValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      title: menu.title,
-      url: menu.url ?? "",
-      sortOrder: menu.sortOrder,
-      isActive: menu.isActive,
-      parentId: menu.parentId ?? "",
-    },
+      title: "",
+      url: "",
+      sortOrder: 0,
+      isActive: true,
+      isExternal: false,
+      parentId: "",
+      ...defaultValues,
+    } as CreateValues | UpdateValues,
   });
 
   const selectedParentId = watch("parentId");
-
-  function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const parentId = e.target.value;
-    setValue("parentId", parentId, { shouldDirty: true, shouldTouch: true });
-
-    const parent = flat.find((m) => m.id === parentId);
-    const nextUrl = buildChildMenuUrl(parent?.url);
-    setValue("url", nextUrl, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }
 
   React.useEffect(() => {
-    if (open) {
-      reset({
-        title: menu.title,
-        url: menu.url ?? "",
-        sortOrder: menu.sortOrder,
-        isActive: menu.isActive,
-        parentId: menu.parentId ?? "",
-      });
-      setServerError(null);
+    if (defaultValues) {
+      reset(defaultValues as CreateValues | UpdateValues);
     }
-  }, [open, menu, reset]);
+  }, [defaultValues, reset]);
 
-  async function onSubmit(values: UpdateValues) {
+  function handleParentChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const parentId = e.target.value;
+    setValue("parentId", parentId, { shouldDirty: true, shouldTouch: true });
+
+    const parent = flat.find((m) => m.id === parentId);
+    const nextUrl = buildChildMenuUrl(parent?.url);
+    setValue("url", nextUrl, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  }
+
+  async function onFormSubmit(values: CreateValues | UpdateValues) {
     setServerError(null);
     try {
-      await updateMenu(menu.id, {
-        title: values.title,
-        url: values.url || null,
-        icon: null,
-        sortOrder: values.sortOrder,
-        isActive: values.isActive,
-        isExternal: false,
-        parentMenuId: values.parentId || null,
-        type: menu.type,
-      });
-      toast.success("Cập nhật menu thành công");
-      onOpenChange(false);
-      onUpdated();
+      await onSubmit(values);
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : "Đã có lỗi xảy ra");
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} closeOnBackdropClick={false}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Chỉnh sửa menu trang chủ</DialogTitle>
-        </DialogHeader>
-        <form className="space-y-4 pt-2" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-2">
-            <Label>Menu cha</Label>
-            <select
-              {...register("parentId")}
-              onChange={handleParentChange}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">-- Không có (menu gốc) --</option>
-              {flat.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {"　".repeat(m.depth)}{m.depth > 0 ? "└ " : ""}{m.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>Tiêu đề *</Label>
-            <Input {...register("title")} />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>URL</Label>
-            <Input
-              {...register("url")}
-              placeholder={selectedParentId ? "/duong-dan-menu-con" : "/gioi-thieu-chung (để trống nếu là menu cha không có link)"}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Thứ tự</Label>
-              <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
-            </div>
-            <div className="flex items-center gap-2 pt-6">
-              <input type="checkbox" id="editIsActive" {...register("isActive")} className="size-4" />
-              <Label htmlFor="editIsActive">Kích hoạt</Label>
-            </div>
-          </div>
-          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Hủy</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Đang lưu..." : "Lưu"}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+    <form id={formId} className="space-y-4" onSubmit={handleSubmit(onFormSubmit)}>
+      <div className="space-y-2">
+        <Label>Menu cha</Label>
+        <select
+          {...register("parentId")}
+          onChange={handleParentChange}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        >
+          <option value="">-- Không có (menu gốc) --</option>
+          {available.map((m) => (
+            <option key={m.id} value={m.id}>
+              {"　".repeat(m.depth)}{m.depth > 0 ? "└ " : ""}{m.title}
+            </option>
+          ))}
+        </select>
+      </div>
 
-function DeleteConfirmDialog({
-  menu,
-  open,
-  onOpenChange,
-  onDeleted,
-}: {
-  menu: MenuDto | null;
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onDeleted: () => void;
-}) {
-  const [loading, setLoading] = React.useState(false);
-  const [serverError, setServerError] = React.useState<string | null>(null);
+      <div className="space-y-2">
+        <Label>Tiêu đề *</Label>
+        <Input {...register("title")} placeholder="VD: Giới thiệu" />
+        {errors.title && <p className="text-sm text-destructive">{String(errors.title?.message)}</p>}
+      </div>
 
-  async function handleDelete() {
-    if (!menu) return;
-    setLoading(true);
-    setServerError(null);
-    try {
-      await deleteMenu(menu.id);
-      toast.success("Xóa menu thành công");
-      onOpenChange(false);
-      onDeleted();
-    } catch (err) {
-      setServerError(err instanceof ApiError ? err.message : "Đã có lỗi xảy ra");
-    } finally {
-      setLoading(false);
-    }
-  }
+      <div className="space-y-2">
+        <Label>URL</Label>
+        <Input
+          {...register("url")}
+          placeholder={selectedParentId ? "/duong-dan-menu-con" : "/gioi-thieu-chung (để trống nếu là menu cha không có link)"}
+        />
+      </div>
 
-  return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setServerError(null); }} closeOnBackdropClick={false}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Xác nhận xóa</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          Bạn có chắc muốn xóa menu <span className="font-medium text-foreground">"{menu?.title}"</span>?
-        </p>
-        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Hủy</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={loading}>
-            {loading ? "Đang xóa..." : "Xóa"}
-          </Button>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Thứ tự</Label>
+          <Input type="number" {...register("sortOrder", { valueAsNumber: true })} />
         </div>
-      </DialogContent>
-    </Dialog>
+        <div className="flex items-center gap-2 pt-6">
+          <input type="checkbox" id={`${formId}-isActive`} {...register("isActive")} className="size-4" />
+          <Label htmlFor={`${formId}-isActive`}>Kích hoạt</Label>
+        </div>
+      </div>
+
+      {formId === "edit-menu-form" && (
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id={`${formId}-isExternal`} {...register("isExternal")} className="size-4" />
+          <Label htmlFor={`${formId}-isExternal`}>Liên kết ngoài</Label>
+        </div>
+      )}
+
+      {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+    </form>
   );
 }
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function PublicMenusPage() {
   const [menus, setMenus] = React.useState<MenuDto[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [createOpen, setCreateOpen] = React.useState(false);
   const [editTarget, setEditTarget] = React.useState<MenuDto | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<MenuDto | null>(null);
+  const [createSubmitting, setCreateSubmitting] = React.useState(false);
+  const [editSubmitting, setEditSubmitting] = React.useState(false);
+  const [deleteLoading, setDeleteLoading] = React.useState(false);
 
   const flat = React.useMemo(() => flattenTree(menus), [menus]);
 
@@ -418,16 +259,77 @@ export default function PublicMenusPage() {
 
   React.useEffect(() => { loadMenus(); }, []);
 
+  async function handleCreate(values: CreateValues | UpdateValues) {
+    const v = values as CreateValues;
+    setCreateSubmitting(true);
+    try {
+      await createMenu({
+        title: v.title,
+        url: v.url || null,
+        sortOrder: v.sortOrder,
+        isActive: v.isActive,
+        parentId: v.parentId || null,
+        type: MenuType.Public,
+      });
+      toast.success("Tạo menu thành công");
+      setCreateOpen(false);
+      loadMenus();
+    } finally {
+      setCreateSubmitting(false);
+    }
+  }
+
+  async function handleUpdate(values: CreateValues | UpdateValues) {
+    if (!editTarget) return;
+    const v = values as UpdateValues;
+    setEditSubmitting(true);
+    try {
+      await updateMenu(editTarget.id, {
+        title: v.title,
+        url: v.url || null,
+        sortOrder: v.sortOrder,
+        isActive: v.isActive,
+        isExternal: v.isExternal,
+        parentMenuId: v.parentId || null,
+        type: editTarget.type,
+      });
+      toast.success("Cập nhật menu thành công");
+      setEditTarget(null);
+      loadMenus();
+    } finally {
+      setEditSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      await deleteMenu(deleteTarget.id);
+      toast.success("Xóa menu thành công");
+      setDeleteTarget(null);
+      loadMenus();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Đã có lỗi xảy ra");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl border dark:border-zinc-800 shadow-sm">
+      {/* Header */}
       <div className="p-6 border-b dark:border-zinc-800 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium text-gray-900 dark:text-zinc-100">Quản lý Menu trang chủ</h2>
-          <p className="text-sm text-gray-500 mt-1">Cấu hình các mục điều hướng hiển thị trên trang công khai</p>
+          <p className="text-sm text-gray-500 mt-1">Cấu hình menu điều hướng trên trang chủ</p>
         </div>
-        <CreateMenuDialog menus={menus} onCreated={loadMenus} />
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="size-4 mr-1" /> Thêm menu
+        </Button>
       </div>
 
+      {/* Table */}
       <div className="p-6">
         {loading ? (
           <p className="text-sm text-muted-foreground">Đang tải...</p>
@@ -477,22 +379,82 @@ export default function PublicMenusPage() {
         )}
       </div>
 
-      {editTarget && (
-        <EditMenuDialog
-          menu={editTarget}
-          menus={menus}
-          onUpdated={loadMenus}
-          open={!!editTarget}
-          onOpenChange={(v) => { if (!v) setEditTarget(null); }}
-        />
-      )}
+      {/* Create Drawer */}
+      <Drawer open={createOpen} onOpenChange={setCreateOpen} className="w-[520px] max-w-[95vw]">
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Thêm menu trang chủ</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <MenuForm
+            formId="create-menu-form"
+            allMenus={menus}
+            onSubmit={handleCreate}
+          />
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>
+            Hủy
+          </Button>
+          <Button type="submit" form="create-menu-form" disabled={createSubmitting}>
+            {createSubmitting ? "Đang lưu..." : "Tạo mới"}
+          </Button>
+        </DrawerFooter>
+      </Drawer>
 
-      <DeleteConfirmDialog
-        menu={deleteTarget}
-        open={!!deleteTarget}
-        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
-        onDeleted={loadMenus}
-      />
+      {/* Edit Drawer */}
+      <Drawer
+        open={!!editTarget}
+        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
+        className="w-[520px] max-w-[95vw]"
+      >
+        <DrawerHeader className="border-b px-6 py-4">
+          <DrawerTitle>Chỉnh sửa menu trang chủ</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {editTarget && (
+            <MenuForm
+              formId="edit-menu-form"
+              defaultValues={{
+                title: editTarget.title,
+                url: editTarget.url ?? "",
+                sortOrder: editTarget.sortOrder,
+                isActive: editTarget.isActive,
+                isExternal: false,
+                parentId: editTarget.parentId ?? "",
+              }}
+              allMenus={menus}
+              excludeId={editTarget.id}
+              onSubmit={handleUpdate}
+            />
+          )}
+        </div>
+        <DrawerFooter className="border-t px-6 py-4 flex-row justify-end gap-2">
+          <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editSubmitting}>
+            Hủy
+          </Button>
+          <Button type="submit" form="edit-menu-form" disabled={editSubmitting}>
+            {editSubmitting ? "Đang lưu..." : "Lưu"}
+          </Button>
+        </DrawerFooter>
+      </Drawer>
+
+      {/* Delete Confirm */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Bạn có chắc muốn xóa menu <span className="font-medium text-foreground">"{deleteTarget?.title}"</span>?
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>Hủy</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteLoading}>
+              {deleteLoading ? "Đang xóa..." : "Xóa"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

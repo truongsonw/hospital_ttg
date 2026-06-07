@@ -1,7 +1,7 @@
 import { redirect } from "react-router";
 
 export function loader() {
-  return redirect("/dashboard/settings/account");
+  return redirect("/dashboard/profile");
 }
 
 export default function SettingsIndexRedirect() {

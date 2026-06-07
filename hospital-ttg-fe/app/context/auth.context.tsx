@@ -1,25 +1,27 @@
-import * as React from 'react';
-import * as authService from '~/services/auth.service';
-import type { UserDto } from '~/types/auth';
+import * as React from "react";
+import * as authService from "~/services/auth.service";
+import type { UserDto } from "~/types/auth";
 
-export const USER_MANAGEMENT_ROLE = 'Admin';
+interface CurrentUser extends UserDto {
+  permissions: string[];
+}
 
 interface AuthContextValue {
-  user: UserDto | null;
+  user: CurrentUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  isAdmin: boolean;
-  hasRole: (role: string) => boolean;
+  hasPermission: (permission: string) => boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   clearAuthState: () => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<UserDto | null>(null);
+  const [user, setUser] = React.useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const clearAuthState = React.useCallback(() => {
@@ -32,10 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const refreshed = await authService.tryRefresh();
         if (refreshed) {
-          const me = await authService.getMe();
+          const me = await authService.getMeWithPermissions();
           setUser(me);
         }
       } catch {
+        // Not authenticated
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = React.useCallback(async (username: string, password: string) => {
     await authService.login(username, password);
-    const me = await authService.getMe();
+    const me = await authService.getMeWithPermissions();
     setUser(me);
   }, []);
 
@@ -62,12 +65,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const hasRole = React.useCallback(
-    (role: string) => user?.role?.toLowerCase() === role.toLowerCase(),
+  const refreshUser = React.useCallback(async () => {
+    const me = await authService.getMeWithPermissions();
+    setUser(me);
+  }, []);
+
+  const hasPermission = React.useCallback(
+    (permission: string) => {
+      if (!user) return false;
+      return user.permissions.includes(permission);
+    },
     [user],
   );
-
-  const isAdmin = hasRole(USER_MANAGEMENT_ROLE);
 
   return (
     <AuthContext.Provider
@@ -75,11 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: user !== null,
         isLoading,
-        isAdmin,
-        hasRole,
+        hasPermission,
         login,
         logout,
         changePassword,
+        refreshUser,
         clearAuthState,
       }}
     >
@@ -90,6 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = React.useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }

@@ -1,6 +1,7 @@
 using Contracts.Booking.DTOs;
 using Contracts.Booking.Enums;
 using Contracts.Booking.Interfaces;
+using Modules.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,10 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = Permissions.BookingManage)]
     [ProducesResponseType(typeof(PagedResponse<IReadOnlyList<BookingDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResponse<IReadOnlyList<BookingDto>>>> GetPaged(
         [FromQuery] BookingStatus? status,
         [FromQuery] string? search,
@@ -34,9 +37,11 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.BookingManage)]
     [ProducesResponseType(typeof(ApiResponse<BookingDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<BookingDto>>> GetById(Guid id, CancellationToken ct)
     {
         var result = await _bookingService.GetByIdAsync(id, ct);
@@ -44,6 +49,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<BookingDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<BookingDto>>> Create(CreateBookingRequest request, CancellationToken ct)
@@ -53,10 +59,12 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/status")]
-    [Authorize]
+    [Authorize(Policy = Permissions.BookingManage)]
     [ProducesResponseType(typeof(ApiResponse<BookingDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<BookingDto>>> UpdateStatus(
         Guid id, UpdateBookingStatusRequest request, CancellationToken ct)
     {
@@ -65,9 +73,11 @@ public class BookingsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.BookingManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         await _bookingService.DeleteAsync(id, ct);

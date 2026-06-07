@@ -82,9 +82,9 @@ const quickLinks = [
     icon: Menu,
   },
   {
-    title: "Tài khoản",
-    description: "Thông tin đăng nhập và đổi mật khẩu",
-    to: "/dashboard/settings/account",
+    title: "Hồ sơ cá nhân",
+    description: "Thông tin cá nhân và đổi mật khẩu",
+    to: "/dashboard/profile",
     icon: User,
   },
   {

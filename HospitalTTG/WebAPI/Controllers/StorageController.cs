@@ -2,13 +2,13 @@ using Contracts.Storage.DTOs;
 using Contracts.Storage.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
 using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class StorageController : ControllerBase
 {
     private readonly IStorageService _storageService;
@@ -19,7 +19,10 @@ public class StorageController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = Permissions.StorageManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<FileDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<FileDto>>>> GetAll(CancellationToken ct)
     {
         var result = await _storageService.GetAllAsync(ct);
@@ -27,8 +30,11 @@ public class StorageController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = Permissions.StorageManage)]
     [ProducesResponseType(typeof(ApiResponse<FileDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<FileDto>>> GetById(Guid id, CancellationToken ct)
     {
         var result = await _storageService.GetByIdAsync(id, ct);
@@ -36,9 +42,12 @@ public class StorageController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Permissions.StorageManage)]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<FileDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<FileDto>>> Upload(IFormFile file, CancellationToken ct)
     {
         var result = await _storageService.UploadAsync(file, ct);
@@ -74,8 +83,11 @@ public class StorageController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.StorageManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         await _storageService.DeleteAsync(id, ct);

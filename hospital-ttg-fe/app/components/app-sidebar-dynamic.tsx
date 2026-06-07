@@ -1,25 +1,10 @@
 "use client"
 
 import * as React from "react"
-import {
-  BookOpen,
-  Users,
-  LayoutGrid,
-  Grid3X3,
-  Newspaper,
-  Calendar,
-  Mail,
-  Stethoscope,
-  Building2,
-  Globe,
-  User,
-  Settings,
-  FileText,
-  LayoutDashboard,
-  type LucideIcon,
-} from "lucide-react"
+import { BookOpen, Users } from "lucide-react"
 import { Link } from "react-router"
 
+import { getMenuIcon } from "~/lib/menu-icons"
 import { NavUser } from "~/components/nav-user"
 import {
   Sidebar,
@@ -37,16 +22,8 @@ import { useMenuItems } from "~/hooks/useMenuItems"
 import { useAuth } from "~/context/auth.context"
 import type { MenuDto } from "~/types/system"
 
-const iconMap: Record<string, LucideIcon> = {
-  Settings, LayoutGrid, Grid3X3, Newspaper, Calendar,
-  Mail, Stethoscope, Building2, Globe, User, Users,
-  BookOpen, LayoutDashboard, FileText,
-}
-
 function MenuIcon({ iconName }: { iconName?: string | null }) {
-  if (!iconName) return null
-  const IconComponent = iconMap[iconName]
-  if (!IconComponent) return null
+  const IconComponent = getMenuIcon(iconName)
   return <IconComponent className="size-4" />
 }
 
@@ -80,7 +57,7 @@ function DynamicNavGroup({
 
 export function AppSidebarDynamic({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { menuItems, loading } = useMenuItems()
-  const { isAdmin } = useAuth()
+  const { hasPermission } = useAuth()
 
   const topLevelGroups = React.useMemo(() => {
     if (!menuItems.length) return []
@@ -131,8 +108,8 @@ export function AppSidebarDynamic({ ...props }: React.ComponentProps<typeof Side
         {topLevelGroups.map((group) => (
           <DynamicNavGroup key={group.label} groupLabel={group.label} items={group.children} />
         ))}
-        {/* Vai trò — always shown for admin */}
-        {isAdmin && (
+        {/* Roles management — shown only if user has role.manage permission */}
+        {hasPermission("role.manage") && (
           <SidebarGroup>
             <SidebarGroupLabel>Vai trò</SidebarGroupLabel>
             <SidebarGroupContent>

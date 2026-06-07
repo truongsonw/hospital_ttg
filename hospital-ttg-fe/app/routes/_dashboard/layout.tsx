@@ -3,10 +3,28 @@ import { AppSidebarDynamic } from "~/components/app-sidebar-dynamic";
 import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import * as authService from "~/services/auth.service";
+import { getRequiredPermissions, hasRequiredPermissions } from "~/lib/permissions";
 
-export async function clientLoader() {
+export async function clientLoader({ request }: { request: Request }) {
   const isAuth = await authService.ensureAuthenticated();
   if (!isAuth) throw redirect("/login");
+
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  // Permission check: verify user has the required permission for this route.
+  // The required permission is resolved from ROUTE_PERMISSIONS map.
+  // Backend is the source of truth for authorization — if frontend allows access
+  // but backend denies, the API call will fail. If frontend denies but backend
+  // allows, the UI simply hides the route.
+  const me = await authService.getMeWithPermissions();
+  const userPermissions = new Set<string>(me.permissions ?? []);
+  const required = getRequiredPermissions(pathname);
+
+  if (required !== null && !hasRequiredPermissions(required, userPermissions)) {
+    throw redirect("/dashboard");
+  }
+
   return null;
 }
 

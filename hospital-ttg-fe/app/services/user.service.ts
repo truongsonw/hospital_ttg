@@ -1,8 +1,11 @@
-﻿import { apiFetch, apiFetchData, apiFetchRaw } from '~/lib/api';
+import { apiFetch, apiFetchData, apiFetchRaw } from '~/lib/api';
 import type {
+  AssignRolePermissionsRequest,
   CreateUserRequest,
   ResetUserPasswordRequest,
   RoleDto,
+  RolePermissionAssignmentDto,
+  RolePermissionDto,
   UpdateUserRequest,
   UpdateUserStatusRequest,
   UserDetailDto,
@@ -62,4 +65,19 @@ export async function resetUserPassword(id: string, req: ResetUserPasswordReques
 
 export async function getRoles(): Promise<RoleDto[]> {
   return apiFetchData<RoleDto[]>('/api/roles');
+}
+
+export async function getAllRolePermissions(): Promise<RolePermissionDto[]> {
+  return apiFetchData<RolePermissionDto[]>('/api/roles/permissions');
+}
+
+export async function getRolePermissions(roleId: string): Promise<RolePermissionAssignmentDto> {
+  return apiFetchData<RolePermissionAssignmentDto>(`/api/roles/${roleId}/permissions`);
+}
+
+export async function assignPermissionsToRole(roleId: string, req: AssignRolePermissionsRequest): Promise<void> {
+  await apiFetch(`/api/roles/${roleId}/permissions`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  });
 }

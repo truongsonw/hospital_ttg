@@ -26,7 +26,7 @@ public class ContentMediasController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.ArticleMediaManage)]
     public async Task<IActionResult> Create(CreateContentMediaRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -34,7 +34,7 @@ public class ContentMediasController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.ArticleMediaManage)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

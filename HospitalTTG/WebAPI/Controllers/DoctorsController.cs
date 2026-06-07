@@ -1,5 +1,6 @@
 using Contracts.Doctor.DTOs;
 using Contracts.Doctor.Interfaces;
+using Modules.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,10 @@ public class DoctorsController : ControllerBase
     public DoctorsController(IDoctorService service) => _service = service;
 
     [HttpGet]
+    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(PagedResponse<IReadOnlyList<DoctorDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResponse<IReadOnlyList<DoctorDto>>>> GetPaged(
         [FromQuery] Guid? departmentId,
         [FromQuery] Guid? groupId,
@@ -44,8 +48,10 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("management")]
-    [Authorize]
+    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DoctorDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<DoctorDto>>>> GetManagement(CancellationToken ct)
     {
         var result = await _service.GetManagementAsync(ct);
@@ -82,8 +88,10 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(ApiResponse<DoctorDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<DoctorDto>>> Create(CreateDoctorRequest request, CancellationToken ct)
     {
         var result = await _service.CreateAsync(request, ct);
@@ -91,9 +99,11 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(ApiResponse<DoctorDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<DoctorDto>>> Update(Guid id, UpdateDoctorRequest request, CancellationToken ct)
     {
         var result = await _service.UpdateAsync(id, request, ct);
@@ -101,9 +111,11 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);

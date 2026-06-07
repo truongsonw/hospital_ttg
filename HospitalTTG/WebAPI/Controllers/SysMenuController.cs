@@ -1,16 +1,17 @@
+using System.Security.Claims;
 using Contracts.System.DTOs;
 using Contracts.System.Enums;
 using Contracts.System.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Auth;
 using Shared.Abstractions.Responses;
 
 namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class SysMenuController : ControllerBase
 {
     private readonly ISysMenuService _sysMenuService;
@@ -21,7 +22,7 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -43,7 +44,7 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -56,7 +57,7 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -69,7 +70,7 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<MenuDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -83,7 +84,7 @@ public class SysMenuController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -96,24 +97,35 @@ public class SysMenuController : ControllerBase
         return Ok(new ApiResponse<bool>(true, "Menu deleted successfully"));
     }
 
-    [HttpGet("role/{roleId}")]
+    [HttpGet("me")]
     [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetMenusForCurrentUser(CancellationToken ct)
+    {
+        var roleId = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrWhiteSpace(roleId))
+            return Unauthorized();
+
+        var result = await _sysMenuService.GetMenusForCurrentRoleAsync(roleId, ct);
+        return Ok(new ApiResponse<IReadOnlyList<MenuDto>>(result));
+    }
+
+    [HttpGet("role/{roleId}")]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<MenuDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<MenuDto>>>> GetMenusByRole(string roleId, CancellationToken ct)
     {
-        var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-        if (userRole != roleId && userRole != Modules.Auth.Extensions.AdminRole)
-            return Forbid();
-
         var result = await _sysMenuService.GetMenusByRoleAsync(roleId, ct);
         return Ok(new ApiResponse<IReadOnlyList<MenuDto>>(result));
     }
 
     [HttpPost("role/assign")]
-    [Authorize(Policy = Modules.Auth.Extensions.UserManagementPolicy)]
+    [Authorize(Policy = Permissions.MenuManage)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]

@@ -28,7 +28,6 @@ export default [
     ...prefix("dashboard", [
       index("routes/_dashboard/index.tsx"), // Route: /dashboard
       route("settings", "routes/_dashboard/settings.tsx"), // Route: /dashboard/settings
-      route("settings/account", "routes/_dashboard/settings.account.tsx"), // Route: /dashboard/settings/account
       route("settings/website", "routes/_dashboard/settings.website.tsx"), // Route: /dashboard/settings/website
       ...prefix("system", [
         route("menus", "routes/_dashboard/system.menus.tsx"), // Route: /dashboard/system/menus
@@ -49,6 +48,7 @@ export default [
       ]),
       route("users", "routes/_dashboard/users.tsx"),  // Route: /dashboard/users
       route("roles", "routes/_dashboard/roles.tsx"),  // Route: /dashboard/roles
+      route("profile", "routes/_dashboard/profile.tsx"), // Route: /dashboard/profile
     ]),
   ]),
 ] satisfies RouteConfig;

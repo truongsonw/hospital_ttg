@@ -13,6 +13,11 @@ export async function getAllMenus(type?: MenuType): Promise<MenuDto[]> {
   return res.data;
 }
 
+export async function getCurrentUserMenus(): Promise<MenuDto[]> {
+  const res = await apiFetch<MenuDto[]>('/api/sysmenu/me');
+  return res.data;
+}
+
 export async function getPublicMenus(): Promise<MenuDto[]> {
   const res = await apiFetch<MenuDto[]>('/api/sysmenu/public');
   return res.data;

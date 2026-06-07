@@ -71,6 +71,34 @@ public class AuthController : ControllerBase
         return Ok(new ApiResponse<UserDto>(result));
     }
 
+    /// <summary>
+    /// Returns the current authenticated user with their full permission set.
+    /// Frontend should use this endpoint to drive route guards and permission checks
+    /// instead of inferring permissions from the role string alone.
+    /// </summary>
+    [Authorize]
+    [HttpGet("me/permissions")]
+    [ProducesResponseType(typeof(ApiResponse<CurrentUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<CurrentUserDto>>> GetCurrentUserWithPermissions(CancellationToken ct)
+    {
+        var result = await _authService.GetCurrentUserWithPermissionsAsync(GetCurrentUserId(), ct);
+        return Ok(new ApiResponse<CurrentUserDto>(result));
+    }
+
+    [Authorize]
+    [HttpPut("me")]
+    [ProducesResponseType(typeof(ApiResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateMyProfile(UpdateMyProfileRequest request, CancellationToken ct)
+    {
+        var result = await _authService.UpdateCurrentUserAsync(GetCurrentUserId(), request, ct);
+        return Ok(new ApiResponse<UserDto>(result, "Cập nhật hồ sơ thành công."));
+    }
+
     [Authorize]
     [HttpPut("change-password")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]

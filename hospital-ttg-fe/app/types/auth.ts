@@ -65,6 +65,11 @@ export interface UpdateUserStatusRequest {
   isActive: boolean;
 }
 
+export interface UpdateMyProfileRequest {
+  fullName: string;
+  email: string;
+}
+
 export interface ResetUserPasswordRequest {
   newPassword: string;
 }
@@ -74,6 +79,21 @@ export interface RoleDto {
   name: string;
   description: string | null;
   isActive: boolean;
+}
+
+export interface RolePermissionDto {
+  key: string;
+  description: string;
+}
+
+export interface RolePermissionAssignmentDto {
+  roleId: string;
+  permissions: string[];
+}
+
+export interface AssignRolePermissionsRequest {
+  roleId: string;
+  permissions: string[];
 }
 
 export interface ApiResponse<T> {
