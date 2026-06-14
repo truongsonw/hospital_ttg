@@ -78,6 +78,13 @@ public class UserManagementService : IUserManagementService
         user.Role = request.Role.Trim();
         user.IsActive = request.IsActive;
 
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password.Trim());
+            // Force re-login on next request by revoking any active refresh token.
+            RevokeRefreshToken(user);
+        }
+
         if (!user.IsActive)
         {
             RevokeRefreshToken(user);

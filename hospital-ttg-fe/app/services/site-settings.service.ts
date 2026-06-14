@@ -2,7 +2,7 @@ import { apiFetch } from '~/lib/api';
 import type { SiteSettingDto, UpdateSiteSettingsRequest } from '~/types/system';
 
 export async function getAllSiteSettings(): Promise<SiteSettingDto[]> {
-  const res = await apiFetch<SiteSettingDto[]>('/api/site-settings');
+  const res = await apiFetch<SiteSettingDto[]>('/api/site-settings/public');
   return res.data;
 }
 

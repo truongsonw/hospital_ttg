@@ -1,9 +1,22 @@
 import * as React from "react"
+import { z } from "zod"
 import { toast } from "sonner"
-import { Shield, CheckSquare, Square, KeyRound } from "lucide-react"
+import {
+  Shield,
+  CheckSquare,
+  Square,
+  KeyRound,
+  Plus,
+  Pencil,
+  Trash2,
+} from "lucide-react"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
 import { Checkbox } from "~/components/ui/checkbox"
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
+import { Textarea } from "~/components/ui/textarea"
+import { Switch } from "~/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -12,6 +25,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "~/components/ui/drawer"
 import {
   Table,
   TableBody,
@@ -23,16 +54,25 @@ import {
 import { ApiError } from "~/lib/api"
 import {
   assignPermissionsToRole,
+  createRole,
+  deleteRole,
   getAllRolePermissions,
   getRolePermissions,
   getRoles,
+  updateRole,
+  updateRoleStatus,
 } from "~/services/user.service"
 import {
   getAllMenus,
   getMenusByRole,
   assignMenusToRole,
 } from "~/services/menu.service"
-import type { RoleDto, MenuDto } from "~/types/system"
+import type {
+  CreateRoleRequest,
+  RoleDto,
+  UpdateRoleRequest,
+} from "~/types/auth"
+import type { MenuDto } from "~/types/system"
 import type { RolePermissionDto } from "~/types/auth"
 
 export function meta() {
@@ -348,6 +388,284 @@ function AssignPermissionDialog({
   )
 }
 
+const roleFormSchema = z.object({
+  name: z.string().trim().min(1, "Vui lòng nhập tên vai trò").max(200, "Tên vai trò tối đa 200 ký tự"),
+  description: z.string().trim().max(500, "Mô tả tối đa 500 ký tự").optional().or(z.literal("")),
+  isActive: z.boolean(),
+})
+
+type RoleFormValues = z.infer<typeof roleFormSchema>
+
+function RoleFormFields({
+  values,
+  onChange,
+  errors,
+  disabled,
+}: {
+  values: RoleFormValues
+  onChange: (next: RoleFormValues) => void
+  errors?: { name?: string; description?: string }
+  disabled?: boolean
+}) {
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label htmlFor="role-name">Tên vai trò</Label>
+        <Input
+          id="role-name"
+          value={values.name}
+          onChange={(event) => onChange({ ...values, name: event.target.value })}
+          disabled={disabled}
+          maxLength={200}
+        />
+        {errors?.name && <p className="text-sm text-destructive">{errors.name}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role-description">Mô tả</Label>
+        <Textarea
+          id="role-description"
+          value={values.description ?? ""}
+          onChange={(event) => onChange({ ...values, description: event.target.value })}
+          rows={3}
+          maxLength={500}
+          disabled={disabled}
+        />
+        {errors?.description && (
+          <p className="text-sm text-destructive">{errors.description}</p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Kích hoạt vai trò</p>
+          <p className="text-xs text-muted-foreground">
+            Tắt để ngừng cấp quyền mới; vai trò đang gán cho người dùng sẽ không thể bị tắt.
+          </p>
+        </div>
+        <Switch
+          checked={values.isActive}
+          onCheckedChange={(checked) => onChange({ ...values, isActive: checked })}
+          disabled={disabled}
+          aria-label="Kích hoạt vai trò"
+        />
+      </div>
+    </div>
+  )
+}
+
+function RoleFormShell({
+  title,
+  description,
+  open,
+  onOpenChange,
+  children,
+  footer,
+}: {
+  title: string
+  description: string
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  children: React.ReactNode
+  footer: React.ReactNode
+}) {
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange} className="w-full sm:w-[560px] sm:max-w-[95vw]">
+      <DrawerContent>
+        <DrawerHeader className="px-6 py-4">
+          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerDescription>{description}</DrawerDescription>
+        </DrawerHeader>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+          <DrawerFooter className="px-6 py-4">{footer}</DrawerFooter>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function CreateRoleDrawer({
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  onSuccess: (created: RoleDto) => void
+}) {
+  const [values, setValues] = React.useState<RoleFormValues>({
+    name: "",
+    description: "",
+    isActive: true,
+  })
+  const [errors, setErrors] = React.useState<{ name?: string; description?: string }>({})
+  const [serverError, setServerError] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    if (open) {
+      setValues({ name: "", description: "", isActive: true })
+      setErrors({})
+      setServerError(null)
+    }
+  }, [open])
+
+  async function handleSubmit() {
+    const result = roleFormSchema.safeParse(values)
+    if (!result.success) {
+      const next: { name?: string; description?: string } = {}
+      for (const issue of result.error.issues) {
+        const key = issue.path[0]
+        if (key === "name" || key === "description") {
+          if (!next[key]) next[key] = issue.message
+        }
+      }
+      setErrors(next)
+      return
+    }
+    setErrors({})
+    setServerError(null)
+    setSaving(true)
+    try {
+      const payload: CreateRoleRequest = {
+        name: result.data.name,
+        description: result.data.description ? result.data.description : null,
+        isActive: result.data.isActive,
+      }
+      const created = await createRole(payload)
+      toast.success("Tạo vai trò thành công.")
+      onSuccess(created)
+      onOpenChange(false)
+    } catch (err) {
+      setServerError(err instanceof ApiError ? err.message : "Không thể tạo vai trò.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <RoleFormShell
+      title="Thêm vai trò mới"
+      description="Tạo vai trò mới và thiết lập trạng thái kích hoạt. Sau khi tạo, bạn có thể gán quyền và menu."
+      open={open}
+      onOpenChange={onOpenChange}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Hủy
+          </Button>
+          <Button type="button" onClick={handleSubmit} disabled={saving}>
+            {saving ? "Đang lưu..." : "Tạo vai trò"}
+          </Button>
+        </>
+      }
+    >
+      <RoleFormFields
+        values={values}
+        onChange={setValues}
+        errors={errors}
+        disabled={saving}
+      />
+      {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+    </RoleFormShell>
+  )
+}
+
+function EditRoleDrawer({
+  role,
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  role: RoleDto | null
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  onSuccess: (updated: RoleDto) => void
+}) {
+  const [values, setValues] = React.useState<RoleFormValues>({
+    name: "",
+    description: "",
+    isActive: true,
+  })
+  const [errors, setErrors] = React.useState<{ name?: string; description?: string }>({})
+  const [serverError, setServerError] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    if (role) {
+      setValues({
+        name: role.name,
+        description: role.description ?? "",
+        isActive: role.isActive,
+      })
+      setErrors({})
+      setServerError(null)
+    }
+  }, [role])
+
+  async function handleSubmit() {
+    if (!role) return
+    const result = roleFormSchema.safeParse(values)
+    if (!result.success) {
+      const next: { name?: string; description?: string } = {}
+      for (const issue of result.error.issues) {
+        const key = issue.path[0]
+        if (key === "name" || key === "description") {
+          if (!next[key]) next[key] = issue.message
+        }
+      }
+      setErrors(next)
+      return
+    }
+    setErrors({})
+    setServerError(null)
+    setSaving(true)
+    try {
+      const payload: UpdateRoleRequest = {
+        name: result.data.name,
+        description: result.data.description ? result.data.description : null,
+        isActive: result.data.isActive,
+      }
+      const updated = await updateRole(role.id, payload)
+      toast.success("Cập nhật vai trò thành công.")
+      onSuccess(updated)
+      onOpenChange(false)
+    } catch (err) {
+      setServerError(err instanceof ApiError ? err.message : "Không thể cập nhật vai trò.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <RoleFormShell
+      title="Chỉnh sửa vai trò"
+      description="Cập nhật tên, mô tả và trạng thái hoạt động của vai trò."
+      open={open}
+      onOpenChange={onOpenChange}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Hủy
+          </Button>
+          <Button type="button" onClick={handleSubmit} disabled={saving || !role}>
+            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+          </Button>
+        </>
+      }
+    >
+      <RoleFormFields
+        values={values}
+        onChange={setValues}
+        errors={errors}
+        disabled={saving}
+      />
+      {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+    </RoleFormShell>
+  )
+}
+
 export default function RolesPage() {
   const [roles, setRoles] = React.useState<RoleDto[]>([])
   const [menuCounts, setMenuCounts] = React.useState<Record<string, number>>({})
@@ -356,6 +674,11 @@ export default function RolesPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [assignMenuTarget, setAssignMenuTarget] = React.useState<RoleDto | null>(null)
   const [assignPermissionTarget, setAssignPermissionTarget] = React.useState<RoleDto | null>(null)
+  const [createOpen, setCreateOpen] = React.useState(false)
+  const [editTarget, setEditTarget] = React.useState<RoleDto | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<RoleDto | null>(null)
+  const [statusUpdatingId, setStatusUpdatingId] = React.useState<string | null>(null)
+  const [deleting, setDeleting] = React.useState(false)
 
   async function loadRoles() {
     setLoading(true)
@@ -414,6 +737,60 @@ export default function RolesPage() {
     }
   }, [roles])
 
+  function handleCreateSuccess(created: RoleDto) {
+    setRoles((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)))
+  }
+
+  function handleUpdateSuccess(updated: RoleDto) {
+    setRoles((prev) =>
+      prev.map((role) => (role.id === updated.id ? updated : role)).sort((a, b) => a.name.localeCompare(b.name))
+    )
+  }
+
+  function handleDeleteSuccess(id: string) {
+    setRoles((prev) => prev.filter((role) => role.id !== id))
+    setMenuCounts((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setPermissionCounts((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  async function handleToggleStatus(role: RoleDto, nextIsActive: boolean) {
+    setStatusUpdatingId(role.id)
+    try {
+      await updateRoleStatus(role.id, { isActive: nextIsActive })
+      setRoles((prev) =>
+        prev.map((r) => (r.id === role.id ? { ...r, isActive: nextIsActive } : r))
+      )
+      toast.success(nextIsActive ? "Đã kích hoạt vai trò." : "Đã tắt vai trò.")
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật trạng thái.")
+    } finally {
+      setStatusUpdatingId(null)
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deleteRole(deleteTarget.id)
+      handleDeleteSuccess(deleteTarget.id)
+      toast.success("Xóa vai trò thành công.")
+      setDeleteTarget(null)
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Không thể xóa vai trò.")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -423,6 +800,10 @@ export default function RolesPage() {
             Quản lý vai trò, menu truy cập và quyền nghiệp vụ cho từng vai trò.
           </p>
         </div>
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="mr-2 size-4" />
+          Thêm vai trò
+        </Button>
       </div>
 
       {error && (
@@ -474,10 +855,18 @@ export default function RolesPage() {
                   <TableCell className="text-center">
                     <Badge variant="outline">{permissionCounts[role.id] ?? "—"} quyền</Badge>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant={role.isActive ? "default" : "destructive"}>
-                      {role.isActive ? "Hoạt động" : "Tắt"}
-                    </Badge>
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-2">
+                      <Badge variant={role.isActive ? "default" : "destructive"}>
+                        {role.isActive ? "Hoạt động" : "Tắt"}
+                      </Badge>
+                      <Switch
+                        checked={role.isActive}
+                        disabled={statusUpdatingId === role.id}
+                        onCheckedChange={(checked) => handleToggleStatus(role, checked)}
+                        aria-label={`Bật/tắt vai trò ${role.name}`}
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -495,6 +884,22 @@ export default function RolesPage() {
                       >
                         <KeyRound className="mr-2 size-4" />
                         Gán quyền
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditTarget(role)}
+                        aria-label={`Sửa vai trò ${role.name}`}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteTarget(role)}
+                        aria-label={`Xóa vai trò ${role.name}`}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </div>
                   </TableCell>
@@ -530,6 +935,41 @@ export default function RolesPage() {
           }
         }}
       />
+
+      <CreateRoleDrawer open={createOpen} onOpenChange={setCreateOpen} onSuccess={handleCreateSuccess} />
+
+      <EditRoleDrawer
+        role={editTarget}
+        open={!!editTarget}
+        onOpenChange={(v) => !v && setEditTarget(null)}
+        onSuccess={handleUpdateSuccess}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && !deleting && setDeleteTarget(null)}>
+        <AlertDialogContent open={!!deleteTarget}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa vai trò</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn xóa vai trò{" "}
+              <span className="font-medium text-foreground">{deleteTarget?.name}</span>? Thao tác này
+              không thể hoàn tác. Vai trò đang được gán cho người dùng sẽ không thể xóa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                void handleConfirmDelete()
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

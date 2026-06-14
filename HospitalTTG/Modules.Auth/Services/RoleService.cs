@@ -1,7 +1,9 @@
 using Contracts.Auth.DTOs;
 using Contracts.Auth.Interfaces;
+using Modules.Auth.Entities;
 using Modules.Auth.Repositories;
 using Shared.Abstractions.Exceptions;
+using Shared.Abstractions.Interfaces;
 
 namespace Modules.Auth.Services;
 
@@ -29,10 +31,17 @@ public class RoleService : IRoleService
         };
 
     private readonly IRoleRepository _roleRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RoleService(IRoleRepository roleRepository)
+    public RoleService(
+        IRoleRepository roleRepository,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork)
     {
         _roleRepository = roleRepository;
+        _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IReadOnlyList<RoleDto>> GetAllAsync(CancellationToken ct = default)
@@ -116,4 +125,108 @@ public class RoleService : IRoleService
 
         await _roleRepository.ReplacePermissionsAsync(request.RoleId, normalizedPermissions, ct);
     }
+
+    public async Task<RoleDto> CreateAsync(CreateRoleRequest request, CancellationToken ct = default)
+    {
+        var normalizedName = request.Name.Trim();
+
+        if (await _roleRepository.ExistsByNameAsync(normalizedName, ct))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                { nameof(request.Name), ["Tên vai trò đã tồn tại."] }
+            });
+        }
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Name = normalizedName,
+            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+            IsActive = request.IsActive,
+            CreatedDate = DateTime.UtcNow,
+        };
+
+        await _roleRepository.AddAsync(role, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return MapToDto(role);
+    }
+
+    public async Task<RoleDto> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException("Role", id);
+
+        var normalizedName = request.Name.Trim();
+        if (await _roleRepository.ExistsByNameAsync(normalizedName, id, ct))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                { nameof(request.Name), ["Tên vai trò đã tồn tại."] }
+            });
+        }
+
+        role.Name = normalizedName;
+        role.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        role.IsActive = request.IsActive;
+        role.UpdatedDate = DateTime.UtcNow;
+
+        _roleRepository.Update(role);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return MapToDto(role);
+    }
+
+    public async Task UpdateStatusAsync(string id, bool isActive, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException("Role", id);
+
+        if (role.IsActive == isActive) return;
+
+        if (!isActive)
+        {
+            var userCount = await _userRepository.CountByRoleAsync(role.Name, ct);
+            if (userCount > 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { nameof(role.IsActive), [$"Không thể tắt vai trò đang được gán cho {userCount} người dùng."] }
+                });
+            }
+        }
+
+        role.IsActive = isActive;
+        role.UpdatedDate = DateTime.UtcNow;
+        _roleRepository.Update(role);
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
+
+    public async Task DeleteAsync(string id, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException("Role", id);
+
+        var userCount = await _userRepository.CountByRoleAsync(role.Name, ct);
+        if (userCount > 0)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                { "Role", [$"Không thể xóa vai trò đang được gán cho {userCount} người dùng."] }
+            });
+        }
+
+        await _roleRepository.ReplacePermissionsAsync(id, Array.Empty<string>(), ct);
+        _roleRepository.Delete(role);
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
+
+    private static RoleDto MapToDto(Role role) => new()
+    {
+        Id = role.Id,
+        Name = role.Name,
+        Description = role.Description,
+        IsActive = role.IsActive,
+    };
 }

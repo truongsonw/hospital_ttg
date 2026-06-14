@@ -1,6 +1,6 @@
 ﻿import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type UseFormRegister } from "react-hook-form";
+import { useForm, type UseFormRegister, type UseFormSetError } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Pencil, Plus, ShieldCheck, KeyRound } from "lucide-react";
@@ -64,12 +64,31 @@ const createUserSchema = z.object({
   isActive: z.boolean(),
 });
 
-const updateUserSchema = z.object({
-  email: z.email("Email không hợp lệ").max(256, "Email tối đa 256 ký tự"),
-  fullName: z.string().trim().min(1, "Vui lòng nhập họ tên").max(200, "Họ tên tối đa 200 ký tự"),
-  role: z.string().trim().min(1, "Vui lòng chọn vai trò"),
-  isActive: z.boolean(),
-});
+const updateUserSchema = z
+  .object({
+    email: z.email("Email không hợp lệ").max(256, "Email tối đa 256 ký tự"),
+    fullName: z.string().trim().min(1, "Vui lòng nhập họ tên").max(200, "Họ tên tối đa 200 ký tự"),
+    role: z.string().trim().min(1, "Vui lòng chọn vai trò"),
+    isActive: z.boolean(),
+    password: z
+      .string()
+      .max(256)
+      .optional()
+      .refine((value) => value === undefined || value === "" || value.length >= 8, {
+        message: "Mật khẩu tối thiểu 8 ký tự",
+      }),
+    confirmPassword: z.string().max(256).optional(),
+  })
+  .refine(
+    (data) => {
+      // If a new password is being set, the confirmation must match and be present.
+      if (data.password && data.password.length > 0) {
+        return data.confirmPassword === data.password;
+      }
+      return true;
+    },
+    { message: "Mật khẩu xác nhận không khớp", path: ["confirmPassword"] },
+  );
 
 const resetPasswordSchema = z
   .object({
@@ -85,7 +104,42 @@ type CreateUserValues = z.infer<typeof createUserSchema>;
 type UpdateUserValues = z.infer<typeof updateUserSchema>;
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-type UserFormErrors = Partial<Record<"username" | "email" | "fullName" | "role" | "password", string | undefined>>;
+type UserFormErrors = Partial<Record<"username" | "email" | "fullName" | "role" | "password" | "confirmPassword", string | undefined>>;
+
+const SERVER_FIELD_MAP = {
+  Username: "username",
+  Email: "email",
+  FullName: "fullName",
+  Role: "role",
+  Password: "password",
+  NewPassword: "newPassword",
+  ConfirmPassword: "confirmPassword",
+} as const;
+
+type ServerFieldKey = keyof typeof SERVER_FIELD_MAP;
+
+function pickFirstMessage(messages: string[] | undefined): string | undefined {
+  if (!Array.isArray(messages) || messages.length === 0) return undefined;
+  return messages[0];
+}
+
+function applyServerErrors(
+  setError: UseFormSetError<Record<string, unknown>>,
+  fieldErrors: Record<string, string[]> | undefined,
+  allowedFields: ReadonlyArray<keyof typeof SERVER_FIELD_MAP>,
+) {
+  if (!fieldErrors) return false;
+  let applied = false;
+  for (const [rawKey, messages] of Object.entries(fieldErrors)) {
+    const formKey = SERVER_FIELD_MAP[rawKey as ServerFieldKey];
+    if (!formKey || !allowedFields.includes(rawKey as ServerFieldKey)) continue;
+    const message = pickFirstMessage(messages);
+    if (!message) continue;
+    setError(formKey as never, { type: "server", message });
+    applied = true;
+  }
+  return applied;
+}
 
 function UserStatusBadge({ isActive }: { isActive: boolean }) {
   return (
@@ -142,7 +196,7 @@ function CreateUserFormFields({
         >
           <option value="">Chọn vai trò</option>
           {roles.map((role) => (
-            <option key={role.id} value={role.id}>
+            <option key={role.id} value={role.name}>
               {role.name}
             </option>
           ))}
@@ -208,12 +262,39 @@ function EditUserFormFields({
         >
           <option value="">Chọn vai trò</option>
           {roles.map((role) => (
-            <option key={role.id} value={role.id}>
+            <option key={role.id} value={role.name}>
               {role.name}
             </option>
           ))}
         </select>
         {errors.role && <p className="text-sm text-destructive">{errors.role}</p>}
+      </div>
+
+      <div className="space-y-2 rounded-lg border bg-muted/20 px-4 py-3">
+        <p className="text-sm font-medium">Đổi mật khẩu</p>
+        <p className="text-xs text-muted-foreground">
+          Để trống nếu muốn giữ nguyên mật khẩu hiện tại. Khi nhập mật khẩu mới, người dùng sẽ phải đăng nhập lại ở phiên kế tiếp.
+        </p>
+        <div className="space-y-2 pt-1">
+          <Label htmlFor="edit-password">Mật khẩu mới</Label>
+          <Input
+            id="edit-password"
+            type="password"
+            autoComplete="new-password"
+            {...register("password")}
+          />
+          {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-confirmPassword">Xác nhận mật khẩu mới</Label>
+          <Input
+            id="edit-confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            {...register("confirmPassword")}
+          />
+          {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+        </div>
       </div>
 
       <div className="flex items-center justify-between rounded-lg border px-4 py-3">
@@ -276,6 +357,7 @@ function CreateUserDrawer({
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CreateUserValues>({
     resolver: zodResolver(createUserSchema),
@@ -310,7 +392,16 @@ function CreateUserDrawer({
       onOpenChange(false);
       reset();
     } catch (error) {
-      setServerError(error instanceof ApiError ? error.message : "Không thể tạo người dùng.");
+      if (error instanceof ApiError) {
+        const applied = applyServerErrors(
+          setError as UseFormSetError<Record<string, unknown>>,
+          error.errors,
+          ["Username", "Email", "FullName", "Role", "Password"],
+        );
+        setServerError(applied ? null : error.message);
+      } else {
+        setServerError("Không thể tạo người dùng.");
+      }
     }
   }
 
@@ -353,7 +444,7 @@ function CreateUserDrawer({
           isActive={isActive}
           onActiveChange={(value) => setValue("isActive", value, { shouldDirty: true, shouldValidate: true })}
         />
-        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+        {serverError && <p className="text-sm text-destructive whitespace-pre-line">{serverError}</p>}
       </form>
     </UserFormShell>
   );
@@ -379,6 +470,7 @@ function EditUserDrawer({
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<UpdateUserValues>({
     resolver: zodResolver(updateUserSchema),
@@ -387,6 +479,8 @@ function EditUserDrawer({
       fullName: "",
       role: "",
       isActive: true,
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -397,6 +491,8 @@ function EditUserDrawer({
       fullName: user.fullName,
       role: user.role,
       isActive: user.isActive,
+      password: "",
+      confirmPassword: "",
     });
     setServerError(null);
   }, [user, reset]);
@@ -408,7 +504,15 @@ function EditUserDrawer({
     if (!user) return;
     setServerError(null);
     try {
-      const payload: UpdateUserRequest = values;
+      const trimmedPassword = values.password?.trim() ?? "";
+      const payload: UpdateUserRequest = {
+        email: values.email,
+        fullName: values.fullName,
+        role: values.role,
+        isActive: values.isActive,
+        // Only send password when the admin actually entered a new one.
+        ...(trimmedPassword ? { password: trimmedPassword } : {}),
+      };
       const updated = await updateUser(user.id, payload);
       toast.success("Cập nhật người dùng thành công.");
       onSuccess({
@@ -422,7 +526,16 @@ function EditUserDrawer({
       });
       onOpenChange(false);
     } catch (error) {
-      setServerError(error instanceof ApiError ? error.message : "Không thể cập nhật người dùng.");
+      if (error instanceof ApiError) {
+        const applied = applyServerErrors(
+          setError as UseFormSetError<Record<string, unknown>>,
+          error.errors,
+          ["Email", "FullName", "Role", "Password"],
+        );
+        setServerError(applied ? null : error.message);
+      } else {
+        setServerError("Không thể cập nhật người dùng.");
+      }
     }
   }
 
@@ -460,6 +573,8 @@ function EditUserDrawer({
               email: errors.email?.message,
               fullName: errors.fullName?.message,
               role: errors.role?.message,
+              password: errors.password?.message,
+              confirmPassword: errors.confirmPassword?.message,
             }}
             roles={roles}
             roleValue={roleValue}
@@ -467,7 +582,7 @@ function EditUserDrawer({
             isActive={isActive}
             onActiveChange={(value) => setValue("isActive", value, { shouldDirty: true, shouldValidate: true })}
           />
-          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+          {serverError && <p className="text-sm text-destructive whitespace-pre-line">{serverError}</p>}
         </form>
       )}
     </UserFormShell>
@@ -488,6 +603,7 @@ function ResetPasswordDrawer({
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -506,7 +622,16 @@ function ResetPasswordDrawer({
       onOpenChange(false);
       reset();
     } catch (error) {
-      setServerError(error instanceof ApiError ? error.message : "Không thể đặt lại mật khẩu.");
+      if (error instanceof ApiError) {
+        const applied = applyServerErrors(
+          setError as UseFormSetError<Record<string, unknown>>,
+          error.errors,
+          ["NewPassword", "ConfirmPassword"],
+        );
+        setServerError(applied ? null : error.message);
+      } else {
+        setServerError("Không thể đặt lại mật khẩu.");
+      }
     }
   }
 
@@ -549,7 +674,7 @@ function ResetPasswordDrawer({
             <Input id="confirmPassword" type="password" autoComplete="new-password" {...register("confirmPassword")} />
             {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
           </div>
-          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+          {serverError && <p className="text-sm text-destructive whitespace-pre-line">{serverError}</p>}
         </form>
       )}
     </UserFormShell>

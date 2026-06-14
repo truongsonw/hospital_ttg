@@ -5,13 +5,16 @@ export const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined
 // Circular-dependency-safe: auth.service sets these via setTokenAccessors()
 let _getToken: () => string | null = () => null;
 let _refreshTokens: () => Promise<boolean> = async () => false;
+let _hasRefreshToken: () => boolean = () => false;
 
 export function setTokenAccessors(
   getToken: () => string | null,
   refreshTokens: () => Promise<boolean>,
+  hasRefreshToken?: () => boolean,
 ) {
   _getToken = getToken;
   _refreshTokens = refreshTokens;
+  if (hasRefreshToken) _hasRefreshToken = hasRefreshToken;
 }
 
 function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
@@ -29,10 +32,19 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 function getErrorMessage(body: any, status: number) {
-  if (body?.detail) return body.detail;
-  if (body?.title) return body.title;
-  if (status === 403) return 'Bạn không có quyền thực hiện thao tác này.';
-  return 'Request failed';
+  if (body?.detail && typeof body.detail === "string") return body.detail;
+  if (body?.title && typeof body.title === "string") return body.title;
+  if (status === 403) return "Bạn không có quyền thực hiện thao tác này.";
+  return "Request failed";
+}
+
+function formatFieldErrors(errors: Record<string, string[]> | undefined): string | null {
+  if (!errors) return null;
+  const entries = Object.entries(errors).filter(([, msgs]) => Array.isArray(msgs) && msgs.length > 0);
+  if (entries.length === 0) return null;
+  return entries
+    .map(([field, msgs]) => `${field}: ${msgs.join("; ")}`)
+    .join("\n");
 }
 
 async function doFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -47,7 +59,14 @@ async function doFetchRaw<T>(path: string, options: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const error = new ApiError(res.status, getErrorMessage(body, res.status), body?.extensions?.errors ?? body?.errors);
+    const fieldErrors = body?.extensions?.errors ?? body?.errors;
+    const detailed = formatFieldErrors(fieldErrors);
+    const baseMessage = getErrorMessage(body, res.status);
+    const message =
+      detailed && baseMessage === "One or more validation errors occurred."
+        ? detailed
+        : baseMessage;
+    const error = new ApiError(res.status, message, fieldErrors);
     throw error;
   }
 
@@ -67,7 +86,7 @@ export async function apiFetchRaw<T>(path: string, options: RequestInit = {}): P
       if (refreshed) {
         return doFetchRaw<T>(path, options);
       }
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && _hasRefreshToken()) {
         window.location.href = '/login';
       }
     }
@@ -89,7 +108,14 @@ async function doUpload<T>(path: string, formData: FormData): Promise<ApiRespons
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, getErrorMessage(body, res.status), body?.extensions?.errors ?? body?.errors);
+    const fieldErrors = body?.extensions?.errors ?? body?.errors;
+    const detailed = formatFieldErrors(fieldErrors);
+    const baseMessage = getErrorMessage(body, res.status);
+    const message =
+      detailed && baseMessage === "One or more validation errors occurred."
+        ? detailed
+        : baseMessage;
+    throw new ApiError(res.status, message, fieldErrors);
   }
   return readJson<ApiResponse<T>>(res);
 }
@@ -101,7 +127,9 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<Ap
     if (err instanceof ApiError && err.status === 401) {
       const refreshed = await _refreshTokens();
       if (refreshed) return doUpload<T>(path, formData);
-      if (typeof window !== 'undefined') window.location.href = '/login';
+      if (typeof window !== 'undefined' && _hasRefreshToken()) {
+        window.location.href = '/login';
+      }
     }
     throw err;
   }

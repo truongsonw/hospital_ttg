@@ -37,7 +37,12 @@ function setRefreshToken(token: string | null) {
   }
 }
 
-setTokenAccessors(getAccessToken, tryRefresh);
+function hasRefreshToken(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !!localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+setTokenAccessors(getAccessToken, tryRefresh, hasRefreshToken);
 
 export async function login(username: string, password: string): Promise<void> {
   const res = await apiFetch<TokenResponse>('/api/auth/login', {

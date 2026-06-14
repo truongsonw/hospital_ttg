@@ -59,6 +59,8 @@ export interface UpdateUserRequest {
   fullName: string;
   role: string;
   isActive: boolean;
+  /** Optional. When provided, must be at least 8 characters. Leave undefined to keep the current password. */
+  password?: string;
 }
 
 export interface UpdateUserStatusRequest {
@@ -78,6 +80,22 @@ export interface RoleDto {
   id: string;
   name: string;
   description: string | null;
+  isActive: boolean;
+}
+
+export interface CreateRoleRequest {
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+}
+
+export interface UpdateRoleRequest {
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+}
+
+export interface UpdateRoleStatusRequest {
   isActive: boolean;
 }
 

@@ -23,6 +23,45 @@ public class RoleRepository : IRoleRepository
         return await _context.Set<Role>().FindAsync([id], ct);
     }
 
+    public async Task<Role?> GetByNameAsync(string name, CancellationToken ct = default)
+    {
+        var normalized = name.Trim();
+        return await _context.Set<Role>()
+            .FirstOrDefaultAsync(r => r.Name == normalized, ct);
+    }
+
+    public Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default)
+    {
+        return ExistsByNameAsync(name, null, ct);
+    }
+
+    public async Task<bool> ExistsByNameAsync(string name, string? excludeRoleId, CancellationToken ct = default)
+    {
+        var normalized = name.Trim();
+        var query = _context.Set<Role>().Where(r => r.Name == normalized);
+        if (!string.IsNullOrEmpty(excludeRoleId))
+        {
+            query = query.Where(r => r.Id != excludeRoleId);
+        }
+        return await query.AnyAsync(ct);
+    }
+
+    public async Task<Role> AddAsync(Role role, CancellationToken ct = default)
+    {
+        await _context.Set<Role>().AddAsync(role, ct);
+        return role;
+    }
+
+    public void Update(Role role)
+    {
+        _context.Set<Role>().Update(role);
+    }
+
+    public void Delete(Role role)
+    {
+        _context.Set<Role>().Remove(role);
+    }
+
     public async Task<IReadOnlyList<string>> GetPermissionsByRoleAsync(string roleId, CancellationToken ct = default)
     {
         try

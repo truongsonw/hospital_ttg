@@ -31,6 +31,16 @@ public class SiteSettingsController : ControllerBase
         return Ok(new ApiResponse<IReadOnlyList<SiteSettingDto>>(result));
     }
 
+    [HttpGet("public")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<SiteSettingDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<SiteSettingDto>>>> GetPublic(CancellationToken ct)
+    {
+        var result = await _service.GetPublicAsync(ct);
+        return Ok(new ApiResponse<IReadOnlyList<SiteSettingDto>>(result));
+    }
+
     [HttpGet("{group}")]
     [Authorize(Policy = Permissions.SiteSettingsManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<SiteSettingDto>>), StatusCodes.Status200OK)]

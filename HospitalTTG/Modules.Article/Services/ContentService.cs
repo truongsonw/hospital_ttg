@@ -156,7 +156,7 @@ internal sealed class ContentService : IContentService
         Intro = e.Intro,
         Body = e.Body,
         Thumbnail = e.Thumbnail,
-        FileAttach = e.FileAttach,
+        FileAttach = ResolveFileAttachUrl(e.FileAttach),
         PdfViewMode = e.PdfViewMode,
         Tags = e.Tags,
         Status = e.Status,
@@ -165,4 +165,23 @@ internal sealed class ContentService : IContentService
         ViewCount = e.ViewCount,
         PublishedAt = e.PublishedAt
     };
+
+    private static readonly System.Text.RegularExpressions.Regex GuidRegex =
+        new("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// Returns a relative download URL for stored file Guids so the public/frontend
+    /// can resolve them against the API base URL. Passes through any other value
+    /// (legacy absolute URL, empty, or external link) untouched.
+    /// </summary>
+    private static string? ResolveFileAttachUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return value;
+        var trimmed = value.Trim();
+        if (GuidRegex.IsMatch(trimmed))
+        {
+            return $"/api/storage/{trimmed}/download";
+        }
+        return value;
+    }
 }

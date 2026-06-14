@@ -29,6 +29,16 @@ public class SiteSettingService : ISiteSettingService
         return entities.Select(MapToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<SiteSettingDto>> GetPublicAsync(CancellationToken ct = default)
+    {
+        var groups = new[] { "general", "contact", "social", "seo" };
+        var entities = await _repository.GetAllAsync(ct);
+        return entities
+            .Where(e => groups.Contains(e.Group, StringComparer.OrdinalIgnoreCase))
+            .Select(MapToDto)
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<SiteSettingDto>> UpsertAsync(UpdateSiteSettingsRequest request, string updatedBy, CancellationToken ct = default)
     {
         foreach (var item in request.Settings)

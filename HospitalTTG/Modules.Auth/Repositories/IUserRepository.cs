@@ -20,4 +20,5 @@ public interface IUserRepository : IRepository<User>
         int page,
         int pageSize,
         CancellationToken ct = default);
+    Task<int> CountByRoleAsync(string role, CancellationToken ct = default);
 }

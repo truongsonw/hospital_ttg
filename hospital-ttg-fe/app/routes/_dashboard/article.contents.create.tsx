@@ -14,6 +14,7 @@ import { getAllCategoriesList } from '~/services/category.service';
 import { createContent } from '~/services/content.service';
 import type { CategoryDto } from '~/types/article';
 import TiptapEditor from '~/components/shared/TiptapEditor';
+import FileUploadInput from '~/components/shared/FileUploadInput';
 
 export function meta() {
   return [{ title: 'Thêm nội dung | Hospital TTG' }];
@@ -172,12 +173,34 @@ export default function ArticleContentsCreatePage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Thumbnail (URL)</Label>
-              <Input {...register('thumbnail')} placeholder="https://..." />
+              <Label>Thumbnail</Label>
+              <Controller
+                name="thumbnail"
+                control={control}
+                render={({ field }) => (
+                  <FileUploadInput
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    accept="image/*"
+                    label="ảnh thumbnail"
+                  />
+                )}
+              />
             </div>
             <div className="space-y-2">
-              <Label>File đính kèm (URL)</Label>
-              <Input {...register('fileAttach')} placeholder="https://..." />
+              <Label>File đính kèm</Label>
+              <Controller
+                name="fileAttach"
+                control={control}
+                render={({ field }) => (
+                  <FileUploadInput
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    label="file đính kèm"
+                  />
+                )}
+              />
             </div>
           </div>
 

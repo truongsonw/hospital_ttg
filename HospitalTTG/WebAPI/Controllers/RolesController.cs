@@ -30,6 +30,57 @@ public class RolesController : ControllerBase
         return Ok(new ApiResponse<IReadOnlyList<RoleDto>>(result));
     }
 
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<RoleDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<RoleDto>>> Create(CreateRoleRequest request, CancellationToken ct)
+    {
+        var result = await _roleService.CreateAsync(request, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, new ApiResponse<RoleDto>(result, "Tạo vai trò thành công."));
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<RoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<RoleDto>>> Update(string id, UpdateRoleRequest request, CancellationToken ct)
+    {
+        var result = await _roleService.UpdateAsync(id, request, ct);
+        return Ok(new ApiResponse<RoleDto>(result, "Cập nhật vai trò thành công."));
+    }
+
+    [HttpPatch("{id}/status")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(string id, UpdateRoleStatusRequest request, CancellationToken ct)
+    {
+        await _roleService.UpdateStatusAsync(id, request.IsActive, ct);
+        return Ok(new ApiResponse<object>("Cập nhật trạng thái vai trò thành công."));
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<object>>> Delete(string id, CancellationToken ct)
+    {
+        await _roleService.DeleteAsync(id, ct);
+        return Ok(new ApiResponse<object>("Xóa vai trò thành công."));
+    }
+
     [HttpGet("permissions")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<RolePermissionDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]

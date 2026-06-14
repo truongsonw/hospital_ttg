@@ -97,4 +97,10 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
         return new PagedResponse<IReadOnlyList<UserListItemDto>>(items, page, pageSize, totalRecords);
     }
+
+    public Task<int> CountByRoleAsync(string role, CancellationToken ct = default)
+    {
+        var normalizedRole = role.Trim();
+        return DbSet.CountAsync(u => u.Role == normalizedRole, ct);
+    }
 }

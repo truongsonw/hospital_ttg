@@ -1,11 +1,14 @@
 import { apiFetch, apiFetchData, apiFetchRaw } from '~/lib/api';
 import type {
   AssignRolePermissionsRequest,
+  CreateRoleRequest,
   CreateUserRequest,
   ResetUserPasswordRequest,
   RoleDto,
   RolePermissionAssignmentDto,
   RolePermissionDto,
+  UpdateRoleRequest,
+  UpdateRoleStatusRequest,
   UpdateUserRequest,
   UpdateUserStatusRequest,
   UserDetailDto,
@@ -79,5 +82,32 @@ export async function assignPermissionsToRole(roleId: string, req: AssignRolePer
   await apiFetch(`/api/roles/${roleId}/permissions`, {
     method: 'POST',
     body: JSON.stringify(req),
+  });
+}
+
+export async function createRole(req: CreateRoleRequest): Promise<RoleDto> {
+  return apiFetchData<RoleDto>('/api/roles', {
+    method: 'POST',
+    body: JSON.stringify(req),
+  });
+}
+
+export async function updateRole(id: string, req: UpdateRoleRequest): Promise<RoleDto> {
+  return apiFetchData<RoleDto>(`/api/roles/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(req),
+  });
+}
+
+export async function updateRoleStatus(id: string, req: UpdateRoleStatusRequest): Promise<void> {
+  await apiFetch(`/api/roles/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify(req),
+  });
+}
+
+export async function deleteRole(id: string): Promise<void> {
+  await apiFetch(`/api/roles/${id}`, {
+    method: 'DELETE',
   });
 }
