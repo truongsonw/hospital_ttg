@@ -1,5 +1,6 @@
 using Contracts.Doctor.DTOs;
 using Contracts.Doctor.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Modules.Doctor.Repositories;
 using Shared.Abstractions.Exceptions;
 using Shared.Abstractions.Interfaces;
@@ -178,6 +179,201 @@ public class DoctorService : IDoctorService
         var (items, total) = await _repo.SearchAsync(search, page, pageSize, ct);
         var deptMap = await BuildDeptMapAsync(ct);
         return (items.Select(d => MapToDto(d, deptMap)).ToList(), total);
+    }
+
+    public async Task<DoctorImportResultDto> ImportAsync(IFormFile file, CancellationToken ct = default)
+    {
+        var result = new DoctorImportResultDto();
+        var departments = await _deptRepo.GetAllAsync(null, ct);
+        var deptByName = departments.ToDictionary(d => d.Name.Trim(), d => d.Id, StringComparer.OrdinalIgnoreCase);
+
+        using var stream = file.OpenReadStream();
+        using var workbook = new ClosedXML.Excel.XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+        var rows = worksheet.RangeUsed()?.RowsUsed().Skip(1) ?? [];
+
+        foreach (var row in rows)
+        {
+            result.TotalRows++;
+            var rowNumber = result.TotalRows + 1;
+
+            try
+            {
+                var fullName = row.Cell(1).GetString().Trim();
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    result.Errors.Add(new DoctorImportErrorDto
+                    {
+                        RowNumber = rowNumber,
+                        FullName = "",
+                        ErrorMessage = "Họ tên không được để trống"
+                    });
+                    result.FailedCount++;
+                    continue;
+                }
+
+                var departmentName = row.Cell(4).GetString().Trim();
+                Guid? departmentId = null;
+                if (!string.IsNullOrEmpty(departmentName))
+                {
+                    if (deptByName.TryGetValue(departmentName, out var deptId))
+                        departmentId = deptId;
+                }
+
+                var isActiveStr = row.Cell(8).GetString().Trim();
+                var isActive = isActiveStr.Equals("Có", StringComparison.OrdinalIgnoreCase) || isActiveStr == "1" || isActiveStr.Equals("true", StringComparison.OrdinalIgnoreCase) || isActiveStr.Equals("yes", StringComparison.OrdinalIgnoreCase);
+
+                var isManagementStr = row.Cell(10).GetString().Trim();
+                var isManagement = isManagementStr.Equals("Có", StringComparison.OrdinalIgnoreCase) || isManagementStr == "1" || isManagementStr.Equals("true", StringComparison.OrdinalIgnoreCase) || isManagementStr.Equals("yes", StringComparison.OrdinalIgnoreCase);
+
+                var isHomepageFeaturedStr = row.Cell(12).GetString().Trim();
+                var isHomepageFeatured = isHomepageFeaturedStr.Equals("Có", StringComparison.OrdinalIgnoreCase) || isHomepageFeaturedStr == "1" || isHomepageFeaturedStr.Equals("true", StringComparison.OrdinalIgnoreCase) || isHomepageFeaturedStr.Equals("yes", StringComparison.OrdinalIgnoreCase);
+
+                var sortOrderStr = row.Cell(7).GetString().Trim();
+                var sortOrder = int.TryParse(sortOrderStr, out var so) ? so : 0;
+
+                var managementOrderStr = row.Cell(11).GetString().Trim();
+                var managementOrder = int.TryParse(managementOrderStr, out var mo) ? mo : 0;
+
+                var doctor = new Entities.Doctor
+                {
+                    FullName = fullName,
+                    AcademicTitle = string.IsNullOrWhiteSpace(row.Cell(2).GetString()) ? null : row.Cell(2).GetString().Trim(),
+                    Position = string.IsNullOrWhiteSpace(row.Cell(3).GetString()) ? null : row.Cell(3).GetString().Trim(),
+                    DepartmentId = departmentId,
+                    Specialty = string.IsNullOrWhiteSpace(row.Cell(5).GetString()) ? null : row.Cell(5).GetString().Trim(),
+                    Bio = string.IsNullOrWhiteSpace(row.Cell(6).GetString()) ? null : row.Cell(6).GetString().Trim(),
+                    SortOrder = sortOrder,
+                    IsActive = isActive,
+                    IsManagement = isManagement,
+                    ManagementOrder = managementOrder,
+                    IsHomepageFeatured = isHomepageFeatured,
+                    Slug = GenerateSlug(fullName),
+                };
+
+                await _repo.AddAsync(doctor, ct);
+                result.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                result.Errors.Add(new DoctorImportErrorDto
+                {
+                    RowNumber = rowNumber,
+                    FullName = row.Cell(1).GetString(),
+                    ErrorMessage = ex.Message
+                });
+                result.FailedCount++;
+            }
+        }
+
+        if (result.SuccessCount > 0)
+            await _uow.SaveChangesAsync(ct);
+
+        return result;
+    }
+
+    public async Task<byte[]> ExportAsync(CancellationToken ct = default)
+    {
+        var doctors = await _repo.GetAllAsync(ct);
+        var departments = await _deptRepo.GetAllAsync(null, ct);
+        var deptMap = departments.ToDictionary(d => d.Id, d => d.Name);
+
+        using var workbook = new ClosedXML.Excel.XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Danh sach bac si");
+
+        var headers = new[] { "Họ tên", "Học hàm/Học vị", "Chức vụ", "Khoa", "Chuyên khoa", "Giới thiệu", "Thứ tự", "Trạng thái", "Ngày tạo", "Ban lãnh đạo", "Thứ tự BLĐ", "Hiển thị trang chủ" };
+        for (var i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cell(1, i + 1).Value = headers[i];
+            worksheet.Cell(1, i + 1).Style.Font.Bold = true;
+            worksheet.Cell(1, i + 1).Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+        }
+
+        var rowIndex = 2;
+        foreach (var doctor in doctors)
+        {
+            worksheet.Cell(rowIndex, 1).Value = doctor.FullName;
+            worksheet.Cell(rowIndex, 2).Value = doctor.AcademicTitle ?? "";
+            worksheet.Cell(rowIndex, 3).Value = doctor.Position ?? "";
+            worksheet.Cell(rowIndex, 4).Value = doctor.DepartmentId.HasValue && deptMap.TryGetValue(doctor.DepartmentId.Value, out var deptName) ? deptName : "";
+            worksheet.Cell(rowIndex, 5).Value = doctor.Specialty ?? "";
+            worksheet.Cell(rowIndex, 6).Value = doctor.Bio ?? "";
+            worksheet.Cell(rowIndex, 7).Value = doctor.SortOrder;
+            worksheet.Cell(rowIndex, 8).Value = doctor.IsActive ? "Có" : "Không";
+            worksheet.Cell(rowIndex, 9).Value = doctor.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+            worksheet.Cell(rowIndex, 10).Value = doctor.IsManagement ? "Có" : "Không";
+            worksheet.Cell(rowIndex, 11).Value = doctor.ManagementOrder;
+            worksheet.Cell(rowIndex, 12).Value = doctor.IsHomepageFeatured ? "Có" : "Không";
+            rowIndex++;
+        }
+
+        worksheet.Columns().AdjustToContents();
+        using var ms = new MemoryStream();
+        workbook.SaveAs(ms);
+        return ms.ToArray();
+    }
+
+    public async Task<byte[]> GenerateTemplateAsync(CancellationToken ct = default)
+    {
+        var departments = await _deptRepo.GetAllAsync(null, ct);
+
+        using var workbook = new ClosedXML.Excel.XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Danh sach bac si");
+
+        // Headers
+        var headers = new[] { "Họ tên *", "Học hàm/Học vị", "Chức vụ", "Khoa", "Chuyên khoa", "Giới thiệu", "Thứ tự", "Trạng thái (Có/Không)", "Ban lãnh đạo (Có/Không)", "Thứ tự BLĐ", "Hiển thị trang chủ (Có/Không)" };
+        for (var i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cell(1, i + 1).Value = headers[i];
+            worksheet.Cell(1, i + 1).Style.Font.Bold = true;
+            worksheet.Cell(1, i + 1).Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+            worksheet.Cell(1, i + 1).Style.Alignment.WrapText = true;
+        }
+
+        // Sample data row
+        worksheet.Cell(2, 1).Value = "Nguyễn Văn A";
+        worksheet.Cell(2, 2).Value = "PGS.TS.";
+        worksheet.Cell(2, 3).Value = "Trưởng khoa";
+        worksheet.Cell(2, 4).Value = departments.FirstOrDefault()?.Name ?? "Khoa Nội tổng hợp";
+        worksheet.Cell(2, 5).Value = "Nội khoa";
+        worksheet.Cell(2, 6).Value = "Bác sĩ chuyên ngành nội khoa với hơn 10 năm kinh nghiệm.";
+        worksheet.Cell(2, 7).Value = 1;
+        worksheet.Cell(2, 8).Value = "Có";
+        worksheet.Cell(2, 9).Value = "Không";
+        worksheet.Cell(2, 10).Value = 0;
+        worksheet.Cell(2, 11).Value = "Không";
+
+        // Department list sheet
+        var deptSheet = workbook.Worksheets.Add("Danh sach khoa");
+        var deptHeaders = new[] { "Tên khoa" };
+        for (var i = 0; i < deptHeaders.Length; i++)
+        {
+            deptSheet.Cell(1, i + 1).Value = deptHeaders[i];
+            deptSheet.Cell(1, i + 1).Style.Font.Bold = true;
+            deptSheet.Cell(1, i + 1).Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+        }
+        var rowIdx = 2;
+        foreach (var dept in departments)
+        {
+            deptSheet.Cell(rowIdx, 1).Value = dept.Name;
+            rowIdx++;
+        }
+        deptSheet.Column(1).AdjustToContents();
+
+        // Format main sheet
+        worksheet.Column(1).Width = 20;
+        worksheet.Column(4).Width = 25;
+        worksheet.Column(6).Width = 40;
+        worksheet.Columns().AdjustToContents();
+
+        // Add note
+        worksheet.Cell(4, 1).Value = "Ghi chú: Các cột đánh dấu (*) là bắt buộc. Cột 'Khoa' phải khớp chính xác với tên khoa trong sheet 'Danh sach khoa'.";
+        worksheet.Range(4, 1, 4, headers.Length).Style.Font.Italic = true;
+        worksheet.Range(4, 1, 4, headers.Length).Style.Font.FontSize = 10;
+
+        using var ms = new MemoryStream();
+        workbook.SaveAs(ms);
+        return ms.ToArray();
     }
 
     private async Task<Dictionary<Guid, string>> BuildDeptMapAsync(CancellationToken ct)

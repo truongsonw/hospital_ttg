@@ -18,5 +18,7 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.13.22" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <!-- Excel -->
+    <PackageVersion Include="ClosedXML" Version="0.104.1" />
   </ItemGroup>
 </Project>

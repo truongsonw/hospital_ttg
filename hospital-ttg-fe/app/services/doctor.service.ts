@@ -1,5 +1,17 @@
-import { apiFetch, apiFetchRaw } from '~/lib/api';
+import type { ApiResponse } from '~/types/auth';
+import { apiFetch, apiFetchRaw, apiDownload, apiUploadData } from '~/lib/api';
 import type { DoctorDto, CreateDoctorRequest, UpdateDoctorRequest, PagedDoctorResponse } from '~/types/doctor';
+
+export interface DoctorImportResultDto {
+  totalRows: number;
+  successCount: number;
+  failedCount: number;
+  errors: Array<{
+    rowNumber: number;
+    fullName: string;
+    errorMessage: string;
+  }>;
+}
 
 export async function getManagementDoctors(): Promise<DoctorDto[]> {
   const res = await apiFetch<DoctorDto[]>('/api/doctors/management');
@@ -59,4 +71,26 @@ export async function updateDoctor(id: string, req: UpdateDoctorRequest): Promis
 
 export async function deleteDoctor(id: string): Promise<void> {
   await apiFetch<boolean>(`/api/doctors/${id}`, { method: 'DELETE' });
+}
+
+export async function importDoctors(file: File): Promise<DoctorImportResultDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiUploadData<DoctorImportResultDto>('/api/doctors/import', formData);
+}
+
+export function exportDoctors(): void {
+  apiDownload('/api/doctors/export', `danh-sach-bac-si-${new Date().toISOString().slice(0, 10)}.xlsx`)
+    .catch((err) => {
+      console.error('Export error:', err);
+      throw err;
+    });
+}
+
+export function downloadDoctorTemplate(): void {
+  apiDownload('/api/doctors/template', 'bac-si-template.xlsx')
+    .catch((err) => {
+      console.error('Download template error:', err);
+      throw err;
+    });
 }

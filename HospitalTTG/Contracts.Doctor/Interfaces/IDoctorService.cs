@@ -1,4 +1,5 @@
 using Contracts.Doctor.DTOs;
+using Microsoft.AspNetCore.Http;
 using Shared.Abstractions.Responses;
 
 namespace Contracts.Doctor.Interfaces;
@@ -21,4 +22,7 @@ public interface IDoctorService
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<DoctorDto>> SearchAsync(string search, int limit, CancellationToken ct = default);
     Task<(IReadOnlyList<DoctorDto> Items, int Total)> SearchAsync(string search, int page, int pageSize, CancellationToken ct = default);
+    Task<DoctorImportResultDto> ImportAsync(IFormFile file, CancellationToken ct = default);
+    Task<byte[]> ExportAsync(CancellationToken ct = default);
+    Task<byte[]> GenerateTemplateAsync(CancellationToken ct = default);
 }

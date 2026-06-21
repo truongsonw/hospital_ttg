@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Underline } from '@tiptap/extension-underline';
-import { Link as TiptapLink } from '@tiptap/extension-link';
 import { Image as TiptapImage } from '@tiptap/extension-image';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -30,10 +28,10 @@ import {
   Undo2, Redo2,
   RemoveFormatting, Highlighter,
   Minus, Columns, Rows3, Table2, Palette,
-  Underline as LucideUnderline,
   Link as LucideLink,
   Subscript as LucideSubscript,
   Superscript as LucideSuperscript,
+  Underline as LucideUnderline,
   Table as LucideTable,
   Video as LucideYoutube,
   Upload,
@@ -61,13 +59,11 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nháº­p ná
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
       Subscript,
       Superscript,
-      TiptapLink.configure({ openOnClick: false }),
       TiptapImage.configure({ allowBase64: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TaskList,

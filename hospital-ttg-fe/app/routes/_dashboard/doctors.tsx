@@ -1,6 +1,6 @@
 import * as React from "react";
 import { toast } from "sonner";
-import { Trash2, Pencil, Plus } from "lucide-react";
+import { Trash2, Pencil, Plus, Upload, Download } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
@@ -20,7 +20,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "~/components/ui/dialog";
 import Pagination from "~/components/shared/Pagination";
-import { getPagedDoctors, createDoctor, updateDoctor, deleteDoctor } from "~/services/doctor.service";
+import { getPagedDoctors, createDoctor, updateDoctor, deleteDoctor, importDoctors, exportDoctors, downloadDoctorTemplate } from "~/services/doctor.service";
 import { getAllDepartments } from "~/services/department.service";
 import type { DoctorDto, DepartmentDto } from "~/types/doctor";
 import { DoctorForm } from "./DoctorForm";
@@ -47,6 +47,10 @@ export default function DoctorsPage() {
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [createSubmitting, setCreateSubmitting] = React.useState(false);
   const [editSubmitting, setEditSubmitting] = React.useState(false);
+  const [importOpen, setImportOpen] = React.useState(false);
+  const [importFile, setImportFile] = React.useState<File | null>(null);
+  const [importSubmitting, setImportSubmitting] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchDoctors = React.useCallback(async () => {
     setLoading(true);
@@ -131,6 +135,64 @@ export default function DoctorsPage() {
     }
   }
 
+  function handleExport() {
+    try {
+      exportDoctors();
+      toast.success("Đang tải file Excel...");
+    } catch {
+      toast.error("Export thất bại, vui lòng thử lại.");
+    }
+  }
+
+  function handleDownloadTemplate() {
+    try {
+      downloadDoctorTemplate();
+      toast.success("Đang tải file mẫu...");
+    } catch {
+      toast.error("Tải template thất bại, vui lòng thử lại.");
+    }
+  }
+
+  function handleImportFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedExtensions = ['.xlsx', '.xls'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!allowedExtensions.includes(ext)) {
+      toast.error('Vui lòng chọn file Excel (.xlsx, .xls)');
+      return;
+    }
+
+    setImportFile(file);
+  }
+
+  async function handleImport() {
+    if (!importFile) {
+      toast.error('Vui lòng chọn file Excel để import');
+      return;
+    }
+
+    setImportSubmitting(true);
+    try {
+      const result = await importDoctors(importFile);
+      if (result.failedCount > 0) {
+        const errorList = result.errors.slice(0, 5).map((e) => `Dòng ${e.rowNumber}: ${e.errorMessage}`).join('\n');
+        toast.error(`Import hoàn thành với lỗi: ${result.failedCount} dòng thất bại\n${errorList}${result.errors.length > 5 ? '\n...' : ''}`);
+      } else {
+        toast.success(`Import thành công ${result.successCount} bác sĩ`);
+      }
+      setImportOpen(false);
+      setImportFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      fetchDoctors();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import thất bại, vui lòng thử lại.');
+    } finally {
+      setImportSubmitting(false);
+    }
+  }
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl border dark:border-zinc-800 shadow-sm">
       <div className="p-6 border-b dark:border-zinc-800 flex items-center justify-between">
@@ -138,9 +200,20 @@ export default function DoctorsPage() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-zinc-100">Quản lý bác sĩ</h2>
           <p className="text-sm text-gray-500 mt-0.5">Đội ngũ bác sĩ và chuyên gia của bệnh viện.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" /> Thêm bác sĩ
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleDownloadTemplate} title="Tải file mẫu Excel để import">
+            <Download className="h-4 w-4 mr-1" /> Tải mẫu
+          </Button>
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4 mr-1" /> Import
+          </Button>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-1" /> Export
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Thêm bác sĩ
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -294,6 +367,52 @@ export default function DoctorsPage() {
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeleteId(null)}>Hủy</Button>
             <Button variant="destructive" onClick={() => deleteId && handleDelete(deleteId)}>Xóa</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Dialog */}
+      <Dialog open={importOpen} onOpenChange={(v) => { setImportOpen(v); if (!v) { setImportFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Import danh sách bác sĩ</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Tải lên file Excel chứa danh sách bác sĩ. File phải có định dạng .xlsx hoặc .xls
+              </p>
+              <button
+                type="button"
+                onClick={() => downloadDoctorTemplate()}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Tải file mẫu (.xlsx)
+              </button>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Chọn file Excel</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImportFileChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {importFile && (
+                <p className="text-sm text-muted-foreground">
+                  Đã chọn: {importFile.name}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => { setImportOpen(false); setImportFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} disabled={importSubmitting}>
+              Hủy
+            </Button>
+            <Button onClick={handleImport} disabled={importSubmitting || !importFile}>
+              {importSubmitting ? 'Đang import...' : 'Import'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

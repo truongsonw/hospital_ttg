@@ -102,4 +102,12 @@ public class DoctorRepository : BaseRepository<Entities.Doctor>, IDoctorReposito
     {
         return await DbSet.AsNoTracking().FirstOrDefaultAsync(d => d.Slug == slug, ct);
     }
+
+    public async Task<IReadOnlyList<Entities.Doctor>> GetAllAsync(CancellationToken ct)
+    {
+        return await DbSet
+            .OrderBy(d => d.SortOrder)
+            .ThenBy(d => d.FullName)
+            .ToListAsync(ct);
+    }
 }
