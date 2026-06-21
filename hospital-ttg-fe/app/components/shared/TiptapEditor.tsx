@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
@@ -18,6 +19,7 @@ import { TableHeader } from '@tiptap/extension-table-header';
 import { Youtube as TiptapYoutube } from '@tiptap/extension-youtube';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { Placeholder } from '@tiptap/extension-placeholder';
+import { toast } from 'sonner';
 import {
   Bold, Italic, Strikethrough,
   Heading1, Heading2, Heading3, Heading4,
@@ -34,7 +36,10 @@ import {
   Superscript as LucideSuperscript,
   Table as LucideTable,
   Video as LucideYoutube,
+  Upload,
 } from 'lucide-react';
+import { BASE_URL } from '~/lib/api';
+import { uploadFile } from '~/services/storage.service';
 
 interface Props {
   value?: string;
@@ -110,7 +115,39 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
     }
   }
 
-  function addImage() {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
+
+  function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh');
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error('Kích thước file không được vượt quá 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+    uploadFile(file)
+      .then((result) => {
+        const imageUrl = `${BASE_URL}/api/storage/${result.id}/download`;
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+        toast.success('Tải ảnh lên thành công');
+      })
+      .catch(() => toast.error('Không thể tải ảnh lên'))
+      .finally(() => {
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      });
+  }
+
+  function addImageByUrl() {
     const url = window.prompt('URL hình ảnh:');
     if (!url) return;
     editor.chain().focus().setImage({ src: url }).run();
@@ -297,9 +334,46 @@ export default function TiptapEditor({ value, onChange, placeholder = 'Nhập n�
             <Link2Off className="size-4" />
           </button>
         )}
-        <button {...btn(false, 'Chèn hình')} onClick={addImage}>
-          <ImagePlus className="size-4" />
-        </button>
+
+        {/* Image dropdown: upload or URL */}
+        <div className="relative group">
+          <button
+            {...btn(false, 'Chèn hình')}
+            disabled={isUploading}
+            className={`p-1.5 rounded hover:bg-muted transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : 'text-muted-foreground'}`}
+          >
+            {isUploading ? (
+              <span className="size-4 block animate-spin border-2 border-muted-foreground border-t-transparent rounded-full" />
+            ) : (
+              <ImagePlus className="size-4" />
+            )}
+          </button>
+          <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:flex flex-col gap-0.5 bg-popover border border-border rounded-md shadow-md min-w-[140px]">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-t-md"
+            >
+              <Upload className="size-4" />
+              Tải ảnh lên
+            </button>
+            <button
+              type="button"
+              onClick={addImageByUrl}
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-b-md"
+            >
+              <LucideLink className="size-4" />
+              Nhập URL ảnh
+            </button>
+          </div>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageFileChange}
+        />
         <button {...btn(false, 'Chèn YouTube')} onClick={addYoutube}>
           <LucideYoutube className="size-4" />
         </button>
