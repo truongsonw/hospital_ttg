@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/ban-lanh-dao";
-import { getManagementDoctors } from "~/services/doctor.service";
+import { apiFetchData } from "~/lib/api";
 import type { DoctorDto } from "~/types/doctor";
 import { resolveFileUrl } from "~/lib/storage-url";
 
@@ -17,7 +17,7 @@ export default function ManagementPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getManagementDoctors()
+    apiFetchData<DoctorDto[]>("/api/doctors/leadership")
       .then(setDoctors)
       .finally(() => setLoading(false));
   }, []);

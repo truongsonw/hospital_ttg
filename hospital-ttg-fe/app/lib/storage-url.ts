@@ -9,6 +9,7 @@
  * at render time using this module. Handles both:
  *   - new data: plain Guid string
  *   - legacy data: existing full URLs (backward-compat pass-through)
+ *   - relative URLs: /api/storage/{guid}/download (extracted from current BASE_URL)
  */
 
 import { BASE_URL } from "~/lib/api";
@@ -19,6 +20,9 @@ const GUID_REGEX =
 
 const DOWNLOAD_TEMPLATE = `${BASE_URL}/api/storage/{id}/download`;
 
+/** Matches a storage Guid within a full URL or relative URL path */
+const STORAGE_URL_REGEX = /\/api\/storage\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+
 /**
  * Resolves a stored setting value to a usable URL.
  *
@@ -27,10 +31,17 @@ const DOWNLOAD_TEMPLATE = `${BASE_URL}/api/storage/{id}/download`;
  * - If `value` is empty/undefined → returns `fallback`
  */
 export function resolveFileUrl(value: string | undefined | null, fallback = ""): string {
-  if (!value) return fallback;
-  if (GUID_REGEX.test(value.trim())) {
-    return DOWNLOAD_TEMPLATE.replace("{id}", value.trim());
+  if (!value) {
+    console.log('[resolveFileUrl] empty value, returning fallback:', fallback);
+    return fallback;
   }
+  const trimmed = value.trim();
+  if (GUID_REGEX.test(trimmed)) {
+    const result = DOWNLOAD_TEMPLATE.replace("{id}", trimmed);
+    console.log('[resolveFileUrl] Guid detected:', { input: value, output: result, baseUrl: BASE_URL });
+    return result;
+  }
+  console.log('[resolveFileUrl] Not a Guid, returning as-is:', value);
   // Already a full URL — backward compat for existing DB data
   return value;
 }
@@ -44,15 +55,21 @@ export function isStorageGuid(value: string | undefined | null): boolean {
 }
 
 /**
- * Extracts the Guid from a legacy full storage URL.
- * Returns undefined if the value is not a legacy storage URL.
+ * Extracts the Guid from a legacy full storage URL or relative URL.
+ * Returns undefined if the value cannot be parsed as either.
  *
- * Example: "http://localhost:5020/api/storage/abc-123/def/ghi/download" → "abc-123"
+ * Examples:
+ *   "http://localhost:5020/api/storage/abc-123/def/download" → "abc-123"
+ *   "/api/storage/abc-123/download" → "abc-123"
+ *   "abc-123" → "abc-123" (already a Guid)
  */
-const STORAGE_URL_REGEX = /\/api\/storage\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
-
 export function extractGuidFromUrl(value: string | undefined | null): string | undefined {
   if (!value) return undefined;
+  // Direct Guid
+  if (GUID_REGEX.test(value.trim())) {
+    return value.trim();
+  }
+  // Embedded in URL
   const match = value.match(STORAGE_URL_REGEX);
   return match?.[1];
 }
@@ -64,6 +81,5 @@ export function extractGuidFromUrl(value: string | undefined | null): string | u
  */
 export function normaliseFileId(value: string | undefined | null): string | undefined {
   if (!value) return undefined;
-  if (isStorageGuid(value)) return value.trim();
   return extractGuidFromUrl(value);
 }

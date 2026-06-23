@@ -17,10 +17,7 @@ public class DoctorsController : ControllerBase
     public DoctorsController(IDoctorService service) => _service = service;
 
     [HttpGet]
-    [Authorize(Policy = Permissions.DoctorManage)]
     [ProducesResponseType(typeof(PagedResponse<IReadOnlyList<DoctorDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResponse<IReadOnlyList<DoctorDto>>>> GetPaged(
         [FromQuery] Guid? departmentId,
         [FromQuery] Guid? groupId,
@@ -64,6 +61,14 @@ public class DoctorsController : ControllerBase
         [FromQuery] int limit = 4, CancellationToken ct = default)
     {
         var result = await _service.GetFeaturedAsync(limit, ct);
+        return Ok(new ApiResponse<IReadOnlyList<DoctorDto>>(result));
+    }
+
+    [HttpGet("leadership")]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DoctorDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<DoctorDto>>>> GetLeadership(CancellationToken ct)
+    {
+        var result = await _service.GetManagementAsync(ct);
         return Ok(new ApiResponse<IReadOnlyList<DoctorDto>>(result));
     }
 

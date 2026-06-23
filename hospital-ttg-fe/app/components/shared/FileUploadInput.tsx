@@ -3,6 +3,7 @@ import { Trash2, Upload, X, Image, File } from "lucide-react";
 import { Button } from '~/components/ui/button';
 import { uploadFile, getFileDownloadUrl } from '~/services/storage.service';
 import { ApiError } from '~/lib/api';
+import { resolveFileUrl } from '~/lib/storage-url';
 
 interface Props {
   /** The current value: a full download URL (e.g. `<base>/api/storage/<id>/download`)
@@ -21,7 +22,7 @@ function isImageUrl(url: string) {
 }
 
 function resolvePreviewSrc(value: string | undefined): string {
-  return value ?? '';
+  return resolveFileUrl(value, '');
 }
 
 export default function FileUploadInput({ value, onChange, accept = '*/*', label }: Props) {

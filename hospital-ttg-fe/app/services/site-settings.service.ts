@@ -6,6 +6,11 @@ export async function getAllSiteSettings(): Promise<SiteSettingDto[]> {
   return res.data;
 }
 
+export async function getAllSiteSettingsAdmin(): Promise<SiteSettingDto[]> {
+  const res = await apiFetch<SiteSettingDto[]>('/api/site-settings');
+  return res.data;
+}
+
 export async function getSiteSettingsByGroup(group: string): Promise<SiteSettingDto[]> {
   const res = await apiFetch<SiteSettingDto[]>(`/api/site-settings/${group}`);
   return res.data;

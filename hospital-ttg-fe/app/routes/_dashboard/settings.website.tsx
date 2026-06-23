@@ -19,7 +19,7 @@ import SlidesEditor from "~/components/settings/SlidesEditor";
 import QuickActionsEditor from "~/components/settings/QuickActionsEditor";
 import HomepageQuickPicker from "~/components/settings/HomepageQuickPicker";
 import {
-  getAllSiteSettings,
+  getAllSiteSettingsAdmin,
   upsertSiteSettings,
   settingsToMap,
 } from "~/services/site-settings.service";
@@ -182,7 +182,7 @@ function SiteSettingsForm() {
   });
 
   React.useEffect(() => {
-    getAllSiteSettings()
+    getAllSiteSettingsAdmin()
       .then((settings) => {
         const map = settingsToMap(settings as SiteSettingDto[]);
         const slides = normaliseSlides(parseJson<HomePageSlideDto[]>(map.homepage_slides_json, []));

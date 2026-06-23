@@ -17,10 +17,7 @@ public class DepartmentsController : ControllerBase
     public DepartmentsController(IDepartmentService service) => _service = service;
 
     [HttpGet]
-    [Authorize(Policy = Permissions.DepartmentManage)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DepartmentDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<DepartmentDto>>>> GetAll(
         [FromQuery] bool? isActive, CancellationToken ct)
     {
